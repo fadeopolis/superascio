@@ -1,0 +1,14 @@
+#Fat Jar Configuration File
+#Tue Jul 29 22:51:47 CEST 2008
+onejar.license.required=false
+manifest.classpath=
+manifest.removesigners=true
+onejar.checkbox=false
+jarname=ascio_fat.jar
+manifest.mergeall=true
+manifest.mainclass=prealpha.tut.LearnAboutQuaternions
+manifest.file=<createnew>
+jarname.isextern=false
+onejar.expand=
+excludes=<po|ascio>~prealpha/~foes/;<po|ascio>~prealpha/~state/;<po|ascio>~prealpha/~input/;<po|ascio>~prealpha/~util/;<po|ascio>~prealpha/~ascio/;<po|ascio>~prealpha/~tut/~physicstut/;<po|ascio>~prealpha/~tut/~Lesson6.class;<po|ascio>~prealpha/~tut/~Arrow.class;<po|ascio>~prealpha/~tut/~Lesson8$1.class;<po|ascio>~prealpha/~tut/~SimpleThirdPersonGame.class;<po|ascio>~prealpha/~tut/~SimpleThirdPersonGame$SimpleThirdPersonState$MoveAction.class;<po|ascio>~prealpha/~tut/~Lesson6$MyCollisionAction.class;<po|ascio>~prealpha/~tut/~Lesson3.class;<po|ascio>~prealpha/~tut/~Lesson4$MyInputAction.class;<po|ascio>~prealpha/~tut/~Lesson4.class;<po|ascio>~prealpha/~tut/~SimpleThirdPersonGame$SimpleThirdPersonState$3.class;<po|ascio>~prealpha/~tut/~Lesson2.class;<po|ascio>~prealpha/~tut/~SimpleThirdPersonGame$SimpleThirdPersonState.class;<po|ascio>~prealpha/~tut/~Lesson8$2.class;<po|ascio>~prealpha/~tut/~TestStandardGame.class;<po|ascio>~prealpha/~tut/~SimpleThirdPersonGame$SimpleThirdPersonState$1.class;<po|ascio>~prealpha/~tut/~PhysicsGameStateTutorial.class;<po|ascio>~prealpha/~tut/~SimpleThirdPersonGame$SimpleThirdPersonState$2.class;<po|ascio>~prealpha/~tut/~Lesson8.class;<po|ascio>~prealpha/~tut/~Lesson1.class;<po|ascio>~prealpha/~tut/~Lesson8b$MoveAction.class;<po|ascio>~prealpha/~tut/~SimpleThirdPersonGame$SimpleThirdPersonState$RotateAction.class;<po|ascio>~prealpha/~tut/~Lesson8b.class;<po|ascio>~prealpha/~tut/~Lesson8$3.class;<po|ascio>~prealpha/~tut/~Lesson5.class;<po|ascio>~prealpha/~tut/~Lesson5$1.class;<po|ascio>~prealpha/~tut/~Lesson5$MyInputAction.class;<po|ascio>~prealpha/~tut/~Lesson7.class;<po|ascio>~prealpha/~tut/~Lesson8$MoveAction.class;<po|ascio>~prealpha/~interfaces/;<po|ascio>~prealpha/~prealpha.class;<po|ascio>~prealpha/~foobar.class;<po|ascio>~prealpha/~Foo.class;<po|jme>~jmetest/;<po|jmephysics>;<po|jme>~jmetest/
+includes=
