@@ -60,7 +60,7 @@ public class PhysicsViewer extends SimplePhysicsGame {
 		box.updateModelBound();
 		node.attachChild(box);
 		
-		Ascio ascio = new BoxAscio(this.getPhysicsSpace().createDynamicNode());
+		Ascio ascio = new BoxAscio(this.getPhysicsSpace());
 		rootNode.attachChild(ascio.getNode());
 		ascio.getNode().setLocalTranslation(-5, 0, 0);
 		DynamicPhysicsNode foo = (DynamicPhysicsNode) ascio.getNode();

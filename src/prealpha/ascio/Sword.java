@@ -1,13 +1,15 @@
 package prealpha.ascio;
 
 import com.jme.animation.SpatialTransformer;
+import com.jme.bounding.BoundingBox;
 import com.jme.math.*;
 import com.jme.scene.*;
 import com.jme.scene.shape.*;
+import com.jmex.physics.PhysicsSpace;
 
 public class Sword extends Weapon {
-	public Sword() {
-		super();
+	public Sword(PhysicsSpace space) {
+		super(space);
 		
 		Box hilt1 = new Box("hilt", Vector3f.ZERO, .2f, .2f, .5f);
 		Box hilt2 = new Box("hilt", Vector3f.ZERO, .2f, .5f, .2f);
@@ -17,6 +19,10 @@ public class Sword extends Weapon {
 		node.attachChild(hilt2);
 		node.attachChild(blade);
 		
+		node.setModelBound(new BoundingBox());
+		node.updateModelBound();
+		
+		node.generatePhysicsGeometry();
 			
 	}
 	

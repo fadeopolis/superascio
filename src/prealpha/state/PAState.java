@@ -111,8 +111,8 @@ public class PAState extends PhysicsGameState {
 		setupPlayer();
 		
 		// wait for the building threads to finish before continuing
-		lightT.join();
-		textT.join();
+		//lightT.join();
+		//textT.join();
 		//doodadT.join();
 		//soundT.join();
 			
