@@ -17,6 +17,6 @@ public class BackwardAction extends MoveAction {
 	@Override
 	public void performAction(InputActionEvent evt) {
 		// TODO Auto-generated method stub
-		target.getNode().addForce(target.getDirection().mult(-200));
+		target.getNode().addForce(target.getDirection().mult(backwardSpeed));			
 	}
 }

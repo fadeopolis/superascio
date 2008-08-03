@@ -16,6 +16,6 @@ public class ForwardAction extends MoveAction {
 	
 	@Override
 	public void performAction(InputActionEvent evt) {
-		target.getNode().addForce(target.getDirection().mult(forwardSpeed));
+		target.getNode().addForce(target.getDirection().mult(forwardSpeed));			
 	}
 }

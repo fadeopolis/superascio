@@ -2,6 +2,7 @@ package prealpha.input.action;
 
 import prealpha.ascio.Ascio;
 import prealpha.input.MoveAction;
+import prealpha.util.Util;
 
 import com.jme.input.*;
 import com.jme.input.action.*;
@@ -20,7 +21,7 @@ public class TurnLeftAction extends MoveAction {
     public void performAction( InputActionEvent evt ) {
 		switch (type) {
 		case thirdPerson :
-			target.getNode().addTorque(turnLeft);
+			target.getNode().addTorque(turnLeft);			
 			break;
 		case isometric :
 			target.getNode().addTorque(turnLeft);

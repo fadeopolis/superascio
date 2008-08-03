@@ -7,8 +7,10 @@ public abstract class Weapon {
 	
 	public Weapon() {
 		node = new Node("WeaponNode");
-		node.getLocalTranslation().set(0, 0, 2.25f);
+		node.getLocalTranslation().set(0, 0, 2.5f);
 	}
+	
+	public abstract boolean fire();
 	
 	public void update(float time) {
 		

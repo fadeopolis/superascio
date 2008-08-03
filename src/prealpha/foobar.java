@@ -5,6 +5,8 @@
 
 package prealpha;
 
+import java.util.ArrayList;
+
 import prealpha.ascio.Ascio;
 import prealpha.ascio.BoxAscio;
 import prealpha.input.PAHandler;
@@ -32,68 +34,76 @@ import com.jmex.editors.swing.settings.GameSettingsPanel;
 import com.jmex.game.*;
 import com.jmex.game.state.*;
 import com.jmex.physics.*;
+import com.jmex.physics.contact.ContactCallback;
+import com.jmex.physics.contact.PendingContact;
+import com.jmex.physics.geometry.PhysicsBox;
 import com.jmex.physics.util.states.*;
 
 public class foobar {
-	protected static Camera camera;
-	protected static PAHandler input;
-	protected PhysicsSpace space;
 	protected static Vector3f vbuff = new Vector3f();
+	
+	static PhysicsGameState phys;
+	static DebugGameState debug;
 	
 	public static void main(String[] args) throws InterruptedException {
 		StandardGame app = new StandardGame("app");
-			
+		
 //		if (GameSettingsPanel.prompt(app.getSettings(), "PreAlpha for Super Ascio")) {
 		if (true) {
 			app.start();
 			Util.create(null);
-		
-			//foobar game = new foobar("foobar");
+			
+			foobar game = new foobar();
 			//GameStateManager.getInstance().attachChild(game);
 		
-			DebugGameState debug = new DebugGameState(true);
-			//DebugGameState debug = new DebugGameState(false);
+			debug = new DebugGameState(true);
+			//debug = new DebugGameState(false);
 			GameStateManager.getInstance().attachChild(debug);		
 			
-			PhysicsGameState phys = new PhysicsGameState("phys");
+			phys = new PhysicsGameState("phys");
 			GameStateManager.getInstance().attachChild(phys);
 
-			debug.getRootNode().attachChild(phys.getRootNode());
+			DynamicPhysicsNode node = phys.getPhysicsSpace().createDynamicNode();
+			node.setAffectedByGravity(false);
+			Box boxVis = new Box("", Vector3f.ZERO, .75f, 1.5f, 1);
+			node.attachChild(boxVis);
+			MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
+			state.setAmbient(ColorRGBA.red);
+			node.setRenderState(state);
+			PhysicsBox boxPhys = node.createBox("phys");
+			boxPhys.setLocalScale(new Vector3f(1.5f,3f,2));
+			debug.getRootNode().attachChild(node);
+			
+			
+			StaticPhysicsNode floor = phys.getPhysicsSpace().createStaticNode();
+			floor.attachChild(new Box("", Vector3f.UNIT_Y.mult(-2.5f), 10, 1, 10 ));
+			floor.attachChild(new Box("", Vector3f.UNIT_Y.mult(2.5f), 10, 1, 10 ));
+			floor.generatePhysicsGeometry();
+			state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
+			state.setAmbient(new ColorRGBA(.5f, .5f, .5f, .5f));
+			debug.getRootNode().attachChild(floor);
+			
+			node.addTorque(new Vector3f(0, 100, 0));
+			
 			debug.getRootNode().updateRenderState();
 			
-			Node floorN = new Node();
-			debug.getRootNode().attachChild(floorN);
-			{
-				StaticPhysicsNode floor = phys.getPhysicsSpace().createStaticNode();
-				debug.getRootNode().attachChild(floor);
-				//TerrainBuilder t = new TerrainBuilder(phys.getPhysicsSpace(), floorN);
-				//t.start();				
-				
-				DynamicPhysicsNode player = phys.getPhysicsSpace().createDynamicNode();
-				debug.getRootNode().attachChild(player);
-				
-				
-				GameStateManager.getInstance().activateAllChildren();
-				
-			//	while (t.isAlive()) Thread.sleep(10);
-				
-				//player.setAffectedByGravity(true);
-				Ascio ascio = new BoxAscio(player);
-				player.getLocalTranslation().set(0, 50, 0);
-			//	player.setAffectedByGravity(false);
-				player.clearDynamics();
-				
-//				input = new PAHandler(ascio, camera);
-				
-				debug.getRootNode().updateRenderState();
-			}
+			GameStateManager.getInstance().activateAllChildren();
 		}
 	}
-	private class Callback implements PhysicsUpdateCallback {
+	
+	class MyContactCallback implements ContactCallback {
+		@Override
+		public boolean adjustContact(PendingContact contact) {
+			// TODO Auto-generated method stub
+			return true;
+		} 
+		
+	}
+	
+	class MyUpdateCallback implements PhysicsUpdateCallback {
 		@Override
 		public void beforeStep(PhysicsSpace space, float time) {
 			// TODO Auto-generated method stub
-			input.update(time);
 		}
 		@Override
 		public void afterStep(PhysicsSpace space, float time) {
