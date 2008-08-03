@@ -13,6 +13,7 @@ import com.jme.scene.shape.Box;
 import com.jme.scene.state.MaterialState;
 import com.jme.system.DisplaySystem;
 import com.jmex.physics.DynamicPhysicsNode;
+import com.jmex.physics.Joint;
 import com.jmex.physics.PhysicsSpace;
 import com.jmex.physics.PhysicsSpatial;
 import com.jmex.physics.geometry.PhysicsBox;
@@ -24,8 +25,8 @@ public class BoxAscio extends Ascio  {
 	protected Box centerPart;
 	protected Box rightPart;
 	
-	public BoxAscio(DynamicPhysicsNode target) {
-		super(target);
+	public BoxAscio( PhysicsSpace space ) {
+		super(space);
 		
 		/* create visuals for ascio */
 		//TODO: use a proper model for ascio, not just boxes
@@ -78,9 +79,10 @@ public class BoxAscio extends Ascio  {
 
 		node.updateRenderState();
 		
-		/* setup the rest */
-		weapon = new Sword();
-		node.attachChild(weapon.getNode());
+		/* setup the weapon */
+		weapon = new Sword(space);
+		Joint j = space.createJoint();
+		j.attach(node, weapon.getNode());
 	}	
 
 	public void damage(int damage) {

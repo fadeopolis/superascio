@@ -13,22 +13,22 @@ public class CharacterFactory {
 	private static Camera cam;
 	
 	private Node root;
-	private PhysicsSpace physics;
+	private PhysicsSpace space;
 	
 	public CharacterFactory(PhysicsSpace physics, Node root) {
-		this.physics = physics;
+		this.space = physics;
 		display = DisplaySystem.getDisplaySystem();
 		cam = display.getRenderer().getCamera();
 		this.root = root;
 	}
 	
 	public void delete() {
-		physics = null;
+		space = null;
 		display = null;
 	}
 	
 	public BoxAscio createPlayer() {
-		BoxAscio ascio = new BoxAscio(physics.createDynamicNode());
+		BoxAscio ascio = new BoxAscio(space);
 		root.attachChild(ascio.getNode());
 		return ascio;
 	}

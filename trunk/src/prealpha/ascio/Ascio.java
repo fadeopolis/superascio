@@ -29,8 +29,8 @@ public abstract class Ascio implements Updateable, Destructible {
 	 * 
 	 * @param target The node to which the Ascio is attached
 	 */
-	public Ascio(DynamicPhysicsNode target) {
-		node = target;
+	public Ascio(PhysicsSpace space) {
+		node = space.createDynamicNode();
 		
 		//TODO : should health be measured in percent? meaning a float clamped between [0,1]
 		health = 100;

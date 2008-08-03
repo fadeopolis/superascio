@@ -63,27 +63,53 @@ public class foobar {
 			phys = new PhysicsGameState("phys");
 			GameStateManager.getInstance().attachChild(phys);
 
-			DynamicPhysicsNode node = phys.getPhysicsSpace().createDynamicNode();
-			node.setAffectedByGravity(false);
-			Box boxVis = new Box("", Vector3f.ZERO, .75f, 1.5f, 1);
-			node.attachChild(boxVis);
+			Node node = new Node();
+			
+			DynamicPhysicsNode base = phys.getPhysicsSpace().createDynamicNode();
+			//base.setAffectedByGravity(false);
+			Sphere baseVis = new Sphere("base", Vector3f.ZERO, 20, 20, 1);
+			base.attachChild(baseVis);
 			MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
 			state.setAmbient(ColorRGBA.red);
-			node.setRenderState(state);
-			PhysicsBox boxPhys = node.createBox("phys");
-			boxPhys.setLocalScale(new Vector3f(1.5f,3f,2));
-			debug.getRootNode().attachChild(node);
+			base.setRenderState(state);
+			PhysicsBox basePhys = base.createBox("phys");
+			basePhys.setLocalScale(new Vector3f(2f, 2f, 2f));
+			base.setMass(2);
+			debug.getRootNode().attachChild(base);
 			
+			DynamicPhysicsNode body = phys.getPhysicsSpace().createDynamicNode();
+			body.setAffectedByGravity(false);
+			Box bodyVis = new Box("", Vector3f.UNIT_Y.mult(3.f), 1f, 2f, .75f);
+			body.attachChild(bodyVis);
+			state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
+			state.setAmbient(ColorRGBA.blue);
+			body.setRenderState(state);
+			PhysicsBox bodyPhys = body.createBox("phys");
+			bodyPhys.setLocalScale(new Vector3f(1.5f,3f,2));
+			body.setMass(1);
+			debug.getRootNode().attachChild(body);
+			
+	        final Joint joint = phys.getPhysicsSpace().createJoint();
+	        joint.attach( base );
+	        JointAxis axis = joint.createRotationalAxis();
+	        axis.setDirection( new Vector3f( 1, 0, 0 ) );
+
+	        Joint joint2 = phys.getPhysicsSpace().createJoint();
+	        joint2.attach( base,  body );
+	        JointAxis axis2 = joint2.createTranslationalAxis();
+	        axis2.setDirection( new Vector3f( 1, 1, 1 ) );
+	 //       joint2.setCollisionEnabled( true );	
 			
 			StaticPhysicsNode floor = phys.getPhysicsSpace().createStaticNode();
 			floor.attachChild(new Box("", Vector3f.UNIT_Y.mult(-2.5f), 10, 1, 10 ));
-			floor.attachChild(new Box("", Vector3f.UNIT_Y.mult(2.5f), 10, 1, 10 ));
+			//floor.attachChild(new Box("", Vector3f.UNIT_Y.mult(2.5f), 10, 1, 10 ));
 			floor.generatePhysicsGeometry();
 			state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
 			state.setAmbient(new ColorRGBA(.5f, .5f, .5f, .5f));
 			debug.getRootNode().attachChild(floor);
 			
-			node.addTorque(new Vector3f(0, 100, 0));
+		//	body.addTorque(new Vector3f(0, 1000, 0));
+		//	body.addForce(new Vector3f(500,0,000));
 			
 			debug.getRootNode().updateRenderState();
 			
