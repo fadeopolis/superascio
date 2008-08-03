@@ -2,8 +2,8 @@ package prealpha.state;
 
 import prealpha.ascio.*;
 import prealpha.foes.BadBall;
+import prealpha.foes.Foe;
 import prealpha.input.*;
-import prealpha.interfaces.Foe;
 import prealpha.enums.GameType;
 import prealpha.util.*;
 import prealpha.util.Util.PropType;
@@ -53,28 +53,34 @@ public class PAState extends PhysicsGameState {
 	Text[] text;
 	ThreadGroup builders;
 	
-	//the nodes for manipulating everything
-	Node playa = new Node();
+	/** nodes and collections that contain the elments of the scene */
 	Ascio ascio;
 	StaticPhysicsNode floorNode;
 	Node doodadNode;
 	Node foeNode;
-	
-	Map<Node, Foe> foes;
-	
+	Map<Node, Foe> foes;	
 	Node textNode;
 	
-	// sounds
+	/** threads that build the scene */
+	Thread soundT;
+	Thread lightT;
+	Thread textT;
+	Thread terrainT;
+	Thread doodadT;
+	Thread foeT;
+	
+	/** sounds */
 	AudioTrack ascioTrack;
     AudioTrack laserSound;
 	AudioTrack targetSound;
 	
-	//buffer for calculation prevent object creation
+	/** buffer for calculation to prevent object creation */
 	Quaternion qbuff = new Quaternion();
 	Vector3f vbuff = new Vector3f();
 	int ibuff = 0;
 	int fbuff = 0;
 	
+	/** not used at the moment */
 	CharacterFactory factory;
 	
 	public PAState( String name ) {
@@ -85,12 +91,16 @@ public class PAState extends PhysicsGameState {
 		factory = new CharacterFactory(this.getPhysicsSpace(), rootNode);
 		//build();
 	}
-
-	public void build() {
+	/**
+	 * Convenience method for building the state
+	 * @throws InterruptedException
+	 */
+	public void build() throws InterruptedException {
 		System.out.println("LET'S GET IT ON!");
 	
 		builders = new ThreadGroup("builders");
 		
+
 		setupCamera();
 		setupSound();
 		setupLight();
@@ -99,15 +109,23 @@ public class PAState extends PhysicsGameState {
 		setupDoodads();
 		setupFoes();
 		setupPlayer();
+		
+		// wait for the building threads to finish before continuing
+		lightT.join();
+		textT.join();
+		//doodadT.join();
+		//soundT.join();
+			
 		setupInput();
 		setupPhysics();
 		finalTouch();
-			
-		//ascio.getNode().addForce(new Vector3f(0,9999999,0));
 		
 		System.out.println("HUZZAH! IT'S RUNNING!");
 	}
 	
+	/** 
+	 * methods that build seperate parts of the scene, these do not require each other
+	 * and can be commented out for debugging in build without problems */
 	protected void setupCamera() {
 		System.out.println("SETTING UP CAMERA");
 		
@@ -117,7 +135,7 @@ public class PAState extends PhysicsGameState {
 	}
 	protected void setupSound() {   
 		/** Set the 'ears' for the sound API */
-		new Thread(builders, new Runnable() {
+		soundT = new Thread(builders, new Runnable() {
 			public void run () {
 				System.out.println("SETTING UP SOUND");
 				
@@ -131,7 +149,6 @@ public class PAState extends PhysicsGameState {
 		        try {
 					ascioTrack = audio.createAudioTrack(new File("/home/fader/workspace/ascio/data/sound/fabb-Ascc2.ogg").toURI().toURL(), false);
 					ascioTrack.setType(AudioTrack.TrackType.ENVIRONMENT);
-					ascioTrack.track(playa);
 					ascioTrack.setMaxAudibleDistance(1000);
 			        ascioTrack.setVolume(1f);
 		        } catch (Exception e) {
@@ -149,10 +166,11 @@ public class PAState extends PhysicsGameState {
 		        ascioTrack.setRelative(false);
 		        System.out.println("SOUND SET UP");
 			}
-		}).start();		
+		});
+		soundT.start();		
 	}
 	protected void setupLight() {		
-		new Thread(builders, new Runnable() {
+		lightT =new Thread(builders, new Runnable() {
 
 			@Override
 			public void run() {
@@ -182,10 +200,11 @@ public class PAState extends PhysicsGameState {
 				
 				System.out.println("LIGHT SET UP");
 			}
-		}).start();
+		});
+		lightT.start();
 	}
 	protected void setupText() {
-		new Thread(builders, new Runnable() {
+		textT = new Thread(builders, new Runnable() {
 			public void run() {
 				text = new Text[20];
 				for (int i=0; i<text.length; i++) {
@@ -195,7 +214,8 @@ public class PAState extends PhysicsGameState {
 					rootNode.attachChild(text[i]);
 				}
 			}
-		}).start();		
+		});
+		textT.start();		
 	}
 	protected void setupTerrain() {
 		new Thread(builders, new Runnable() {
@@ -205,47 +225,45 @@ public class PAState extends PhysicsGameState {
 				// TODO Auto-generated method stub
 
 				//visuals for the floor
-				Box floorVis = new Box("floorVis", new Vector3f(0,-2,0),1000,.5f,1000);
+				Box floorVis = new Box("floorVis", new Vector3f(0,-2,0),500,.5f,500);
 				floorVis.setModelBound(new BoundingBox());
 				floorVis.updateModelBound();
 				
 				//pillars in the 4 directions, for orientation
-				Box northernPillar = new Box("northernPillar", new Vector3f(1000,0,0),10,1000,10);
+				Box northernPillar = new Box("northernPillar", new Vector3f(500,0,0),.1f,500,500);
 				northernPillar.setModelBound(new BoundingBox());
 				northernPillar.updateModelBound();
 				MaterialState northernState = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-				northernState.setAmbient(ColorRGBA.red);
-				northernState.setDiffuse(ColorRGBA.randomColor());
+				northernState.setAmbient(ColorRGBA.black);
 				northernPillar.setRenderState(northernState);
 				
-				Box southernPillar = new Box("southernPillar", new Vector3f(-1000,0,0),10,1000,10);
+				Box southernPillar = new Box("southernPillar", new Vector3f(-500,0,0),.1f,500,500);
 				southernPillar.setModelBound(new BoundingBox());
 				southernPillar.updateModelBound();
 				MaterialState southernState = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-				southernState.setAmbient(ColorRGBA.green);
-				southernState.setDiffuse(ColorRGBA.randomColor());
+				southernState.setAmbient(ColorRGBA.black);
 				southernPillar.setRenderState(southernState);
 				
-				Box easternPillar = new Box("easternPillar", new Vector3f(0,0,1000),10,1000,10);
+				Box easternPillar = new Box("easternPillar", new Vector3f(0,0,500),500,500,.1f);
 				easternPillar.setModelBound(new BoundingBox());
 				easternPillar.updateModelBound();
 				MaterialState easternState = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-				easternState.setAmbient(ColorRGBA.blue);
-				easternState.setDiffuse(ColorRGBA.randomColor());
+				easternState.setAmbient(ColorRGBA.black);
 				easternPillar.setRenderState(easternState);
 				
-				Box westernPillar = new Box("westernPillar", new Vector3f(0,0,-1000),10,1000,10);
+				Box westernPillar = new Box("westernPillar", new Vector3f(0,0,-500),500,1000,.1f);
 				westernPillar.setModelBound(new BoundingBox());
 				westernPillar.updateModelBound();
 				MaterialState westernState = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-				westernState.setAmbient(ColorRGBA.orange);
-				westernState.setDiffuse(ColorRGBA.randomColor());
+				westernState.setAmbient(ColorRGBA.black);
 				westernPillar.setRenderState(westernState);
 				
 				// boxes, just lying around for fun
-				Box[] boxes = new Box[200];
+				Box[] boxes = new Box[100];
 				for (int i=0; i < boxes.length; i++) {
-					vbuff.set(Util.randomInt(750, true), Util.randomInt(3, false), Util.randomInt(750, true));
+					vbuff.set(Util.randomInt(450, true)+20, Util.randomInt(3, false), Util.randomInt(450, true)+20);
+					if ( vbuff.x > -20 && vbuff.x < 20 ) vbuff.set(0, 40);
+					if ( vbuff.z > -20 && vbuff.z < 20 ) vbuff.set(2, 40);
 					
 					boxes[i] = new Box("Box "+i, vbuff, Util.randomInt(10, false)+1, Util.randomInt(10, false)+1, Util.randomInt(10, false)+1);
 					MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
@@ -274,93 +292,78 @@ public class PAState extends PhysicsGameState {
 
 	}
 	protected void setupDoodads() {
-		System.out.println("SETTING UP DOODADS");
-		// TODO Auto-generated method stub
-		
-		doodadNode = new Node("Doodads");
+		doodadT = new Thread(builders, new Runnable() {
+			@Override
+			public void run() {
+				System.out.println("SETTING UP DOODADS");
+				// TODO Auto-generated method stub
+				
+				
+				doodadNode = new Node("Doodads");
 
-		//a sphere for ascio to play with
-		Sphere sphereVis = new Sphere("sphere", 30,30,3);
-		Cylinder sphereAxis = new Cylinder("sphereAxis", 30, 30, 1, 5.8f,true);
-		
-		MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-		state.setDiffuse(ColorRGBA.blue);
-		state.setAmbient(ColorRGBA.green);
-		
-		DynamicPhysicsNode sphere = this.getPhysicsSpace().createDynamicNode();
-		sphere.setName("Doodad : Sphere");
-		sphere.setRenderState(state);
-		sphere.attachChild(sphereVis);
-		sphere.attachChild(sphereAxis);
-		sphere.setModelBound(new BoundingSphere());
-		sphere.updateModelBound();
-		sphere.generatePhysicsGeometry();
-		sphere.setMass(5);
-		sphere.setLocalTranslation(5,10,20);
-		sphere.getLocalRotation().fromAngleAxis(90*FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
-		
-		doodadNode.attachChild(sphere);
-		rootNode.attachChild(doodadNode);
-		
-		System.out.println("DOODADS SET UP");
+				//a sphere for ascio to play with
+				Sphere sphereVis = new Sphere("sphere", 30,30,3);
+				Cylinder sphereAxis = new Cylinder("sphereAxis", 30, 30, 1, 5.8f,true);
+				
+				MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
+				state.setDiffuse(ColorRGBA.blue);
+				state.setAmbient(ColorRGBA.green);
+				
+				DynamicPhysicsNode sphere = getPhysicsSpace().createDynamicNode();
+				sphere.setLocalTranslation(5,10,20);
+				sphere.setName("Doodad : Sphere");
+				sphere.setRenderState(state);
+				sphere.attachChild(sphereVis);
+				sphere.attachChild(sphereAxis);
+				sphere.setModelBound(new BoundingSphere());
+				sphere.updateModelBound();
+				sphere.generatePhysicsGeometry();
+				sphere.setMass(5);			
+				sphere.getLocalRotation().fromAngleAxis(90*FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
+				
+				doodadNode.attachChild(sphere);
+				rootNode.attachChild(doodadNode);
+				
+				System.out.println("DOODADS SET UP");
+			}
+		});
+		doodadT.start();
 	}
 	protected void setupFoes() {
-		System.out.println("SETTING UP FOES");
 		// TODO Auto-generated method stub
+		System.out.println("SETTING UP FOES");
+		
 		foeNode = new Node();
 		rootNode.attachChild(foeNode);
 		foeNode.setLocalTranslation(10, 0, 10);
 		
 		foes = new HashMap<Node, Foe>();
 		
-		BadBall proto = new BadBall(this.getPhysicsSpace().createDynamicNode());
-		proto.setTarget(ascio);
-		foeNode.attachChild(proto.getNode());
-		foes.put(proto.getNode(), proto);
-		BadBall bi = new BadBall(this.getPhysicsSpace().createDynamicNode());
-		bi.setTarget(ascio);
-		foeNode.attachChild(bi.getNode());
-		foes.put(bi.getNode(), bi);
-		BadBall tri = new BadBall(this.getPhysicsSpace().createDynamicNode());
-		tri.setTarget(ascio);
-		foeNode.attachChild(tri.getNode());
-		foes.put(tri.getNode(), tri);
-		BadBall quad = new BadBall(this.getPhysicsSpace().createDynamicNode());
-		quad.setTarget(ascio);
-		foeNode.attachChild(quad.getNode());
-		foes.put(quad.getNode(), quad);
+		for (int i=0; i < 1; i++) {
+			BadBall proto = new BadBall(getPhysicsSpace().createDynamicNode());
+			proto.getNode().getLocalTranslation().set(0, 5*i);
+			foeNode.attachChild(proto.getNode());
+			foes.put(proto.getNode(), proto);
+		}
 		
 		System.out.println("FOES SET UP");
 	}
 	protected void setupPlayer() {
 		System.out.println("SETTING UP PLAYER");
 
-		//visuals
-		//todo: use com.jme.model.util.resoucelocator
-		//File file = new File("data/model/ascio.jme");
-		//if (file.exists() && file.canRead()) System.out.println("HUZZAH!"); else System.exit(1);
-		/*
-		try {
-			BinaryImporter importer = new BinaryImporter();
-			model = (Node)importer.load(file.toURI().toURL().openStream());
-			model.setModelBound(new BoundingBox());
-			model.updateModelBound();
-			model.setLocalScale(10f);
-		} catch (IOException e) {*/
 		ascio = factory.createPlayer();
-		playa.attachChild(ascio.getNode());
-		rootNode.attachChild(playa);
-//		rootNode.attachChild(ascio.getNode());
-		//}		
-		//physics
-		//todo : put a physbox/or other geom around the player, don't just generatephysgeom
-		ascio.getNode().setLocalTranslation(0,5,0);
+		rootNode.attachChild(ascio.getNode());
+		ascio.getNode().getLocalTranslation().add(0, 30, 0);
 		//ascio.getNode().setAffectedByGravity(false);
 		
 		Util.util().putProp(ascio);
 		
 		System.out.println("PLAYER SET UP");
 	}
+	
+	/** also convenience methods for building the scene,
+	 * but they require the other methods to have finished
+	 * turning off other build-methods may affect these */
 	protected void setupInput() {
 		System.out.println("SETTING UP INPUT");
 		
@@ -369,6 +372,7 @@ public class PAState extends PhysicsGameState {
 		
 		KeyBindingManager.getKeyBindingManager().add("exit", KeyInput.KEY_ESCAPE);
 		KeyBindingManager.getKeyBindingManager().add("physics_debug", KeyInput.KEY_P);
+		KeyBindingManager.getKeyBindingManager().add("music", KeyInput.KEY_M);
 		KeyBindingManager.getKeyBindingManager().add("reset", KeyInput.KEY_F12);
 		
 		KeyBindingManager.getKeyBindingManager().add("turnx+", KeyInput.KEY_1);
@@ -387,7 +391,6 @@ public class PAState extends PhysicsGameState {
 		// TODO Auto-generated method stub
 		
 		ContactCallback contact = new ContactCallback() {
-
 			@Override
 			public boolean adjustContact(PendingContact contact) {
 				// TODO Auto-generated method stub
@@ -397,28 +400,46 @@ public class PAState extends PhysicsGameState {
 					if (f == null) f = foes.get(contact.getNode2());
 					
 					if (f != null) {
-						f.destroy();
-						System.out.println("HIT");
+						ascio.damage(5);
+						BadBall b = (BadBall) f;
+						vbuff.set(0, 1000, 0);
+						b.getNode().addForce(vbuff);
+						System.out.println("YOU GOT HIT");
 					}
 					
 					return false;
-				} else return false;
-			}
-			
+				} else if ( contact.getNode1() == ascio.getWeapon().getNode() || contact.getNode1() == ascio.getWeapon().getNode() ) {
+					Foe f = foes.get(contact.getNode1());
+					if (f == null) f = foes.get(contact.getNode2());
+					
+					if (f != null) {
+						f.damage(15);
+						System.out.println("HIT THE ENEMY");
+					}
+					
+					return false;
+				} 
+				return false;
+			}			
 		};
 		
 		FrictionCallback friction = new FrictionCallback();
-		friction.add(ascio.getNode(), .5f, .5f);
-		friction.add((DynamicPhysicsNode) doodadNode.getChild(0), .5f, .5f);
+		friction.add((DynamicPhysicsNode) ascio.getNode(), .5f, .5f);
+//		friction.add((DynamicPhysicsNode) doodadNode.getChild(0), .5f, .5f);
 		this.getPhysicsSpace().addToUpdateCallbacks(friction);
 		this.getPhysicsSpace().addToUpdateCallbacks(new Callback());
 		this.getPhysicsSpace().getContactCallbacks().add(contact);
 		
 		System.out.println("PHYSICS SET UP");
 	}
-
 	protected void finalTouch() {
 		System.out.println("GIVING IT THE FINAL TOUCH");
+		
+		// set ascio as target for the foes
+		for ( Foe f : foes.values()) {
+			f.setTarget(ascio);
+		}
+		
 		// TODO Auto-generated method stub
 		rootNode.updateGeometricState(0, true);
 		rootNode.updateRenderState();
@@ -432,11 +453,9 @@ public class PAState extends PhysicsGameState {
 				
 		input.update(time);
 		
-		if (foes.values() == null) System.out.println("NULLNULL");
-		
-		for ( Foe f : foes.values()) {
-			f.update(time);
-		}
+		updateKeys();		
+		updateText();
+		updateFoes(time);
 		
         if ( first_frame )
         {
@@ -445,13 +464,6 @@ public class PAState extends PhysicsGameState {
             timer.reset();
             first_frame = false;
         }
-	}
-
-	@Override
-	public void render(float time) {
-		super.render(time);
-		
-		if (physics_debug) PhysicsDebugger.drawPhysics(getPhysicsSpace(), DisplaySystem.getDisplaySystem().getRenderer());
 	}
 
 	private void updateKeys() {
@@ -488,10 +500,11 @@ public class PAState extends PhysicsGameState {
 		}
 		if(KeyBindingManager.getKeyBindingManager().isValidCommand("physics_debug", false)) {
 			physics_debug = !physics_debug;
+		}
+		if(KeyBindingManager.getKeyBindingManager().isValidCommand("music", false)) {
 			try {
 				if (ascioTrack.isPlaying()) ascioTrack.stop(); else ascioTrack.play();
-			} finally {
-				
+			} finally {			
 			}
 		}
 	}
@@ -536,11 +549,6 @@ public class PAState extends PhysicsGameState {
 		ZCR = Util.round(qbuff.z);
 		WCR = Util.round(qbuff.w);
 		
-		long foo = 1024*1024;
-		long freeMemory = Runtime.getRuntime().freeMemory();
-		long maxMemory = Runtime.getRuntime().maxMemory();
-		long totalMemory = Runtime.getRuntime().totalMemory();
-		text[17].print("FreeMemory : "+freeMemory+" | MaxMemory : "+maxMemory+" | TotalMemory : "+totalMemory);
 		text[15].print("Ascio");
 		vbuff = ascio.getNode().getAngularVelocity(vbuff);
 		text[14].print("Angular Velocity    : X:"+Util.round(vbuff.x)+" Y:"+Util.round(vbuff.y)+" Z:"+Util.round(vbuff.z));
@@ -563,8 +571,24 @@ public class PAState extends PhysicsGameState {
  		*/
 		text[0].print("FPS: "+ timer.getFrameRate());
  	}
-
+ 	private void updateFoes(float time) {
+		for ( Foe f : foes.values()) {
+			f.update(time);	
+			if (true) {
+			//if ( this.getPhysicsSpace().collide(floorNode, f.getNode())) {
+			//if ( f.getWorldBound().intersects(floorNode.getWorldBound())) {
+				f.update = true;
+			} else f.update = false;
+		}
+ 	}
 	
+ 	@Override
+	public void render(float time) {
+		super.render(time);
+		
+		if (physics_debug) PhysicsDebugger.drawPhysics(getPhysicsSpace(), DisplaySystem.getDisplaySystem().getRenderer());
+	}
+ 	
  	private class Callback implements PhysicsUpdateCallback {
 		@Override
 		public void beforeStep(PhysicsSpace space, float time) {
@@ -573,15 +597,7 @@ public class PAState extends PhysicsGameState {
 		}		
 		@Override
 		public void afterStep(PhysicsSpace space, float time) {
-			// TODO Auto-generated method stub
-			updateKeys();
-			
-			//if (ibuff == 0) {
-				updateText();
-			//	ibuff = 30;
-			//}
-			//ibuff--;
-			
+			// TODO Auto-generated method stub			
 			//resets player when he falls through the floor, don't know what causes that (yet).
 			if (ascio.getNode().getLocalTranslation().y< -100) {
 				ascio.getNode().getLocalTranslation().set(0,5,0);

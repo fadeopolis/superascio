@@ -17,6 +17,7 @@ public class JumpAction extends MoveAction {
     }
     
     public void performAction( InputActionEvent evt ) {
-    	target.getNode().setLinearVelocity(jumpForce);
+    	target.getNode().addForce(jumpForce);
+//    	target.getNode().setLinearVelocity(jumpForce);
    }
 }

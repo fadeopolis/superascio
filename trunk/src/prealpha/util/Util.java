@@ -153,6 +153,10 @@ public class Util {
 		return ( (v1.x-v2.x)*(v1.y-v2.y)*(v1.z-v2.z) )/3;
 	}
     
+ 	public static void shout(String s) {
+ 		System.out.println(s);
+ 	}
+ 	
     public static void main(String[] args) {
 		}
 }

@@ -7,49 +7,44 @@ import com.jme.scene.shape.Sphere;
 import com.jme.scene.state.MaterialState;
 import com.jme.system.DisplaySystem;
 import com.jmex.physics.DynamicPhysicsNode;
+import com.jmex.physics.PhysicsNode;
 import com.jmex.physics.material.Material;
 
 import prealpha.ascio.Ascio;
 import prealpha.interfaces.Destructible;
-import prealpha.interfaces.Foe;
 import prealpha.util.Util;
 
 public class BadBall extends Foe  {
-	private int health = 100;
-	private DynamicPhysicsNode node;	
-	private Ascio target;
-
+	private static final long serialVersionUID = -1842868006119490533L;
+	
 	public BadBall(DynamicPhysicsNode node) {
-		this.node = node;
+		super(node);
 		
-		Sphere ball = new Sphere("BadBall", 10, 10, 2);
+		Sphere ball = new Sphere("BadBall", 10, 10, 1.5f);
+		node.attachChild(ball);
+		node.getLocalTranslation().set(1, 5);
 		
 		MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
 		state.setAmbient(ColorRGBA.red);
 		state.setDiffuse(ColorRGBA.red);
-	
-		node.attachChild(ball);
 		node.setRenderState(state);
 		
 		node.setModelBound(new BoundingBox());
 		node.updateModelBound();
 		node.generatePhysicsGeometry();
-		node.setMaterial(Material.RUBBER);
+		node.setMaterial(Material.ICE);
+		node.setMass(5);
 		
 		node.updateRenderState();
-	}
-	
-	public DynamicPhysicsNode getNode() {
-		return node;
 	}
 	
 	@Override
 	public void update(float time) {
 		// TODO Auto-generated method stub
-		if ( target != null) {
-			System.out.println("UPDATE");
+		if ( target != null && update) {
+			//System.out.println("UPDATE");
 			goTo(target.getNode().getWorldTranslation());
-		}
+		} else System.out.println("NO UPDATE");
 	}
 	
 	@Override
@@ -75,24 +70,13 @@ public class BadBall extends Foe  {
 	@Override
 	public boolean goTo(Vector3f destination) {
 		// TODO find a cleverer way to do this
-		
-		
+				
 		if ( !Util.nearEqual(destination, node.getLocalTranslation())) {
-			node.addForce(destination.subtract(node.getWorldTranslation()));
+			buff = destination.subtract(node.getWorldTranslation());
+			//buff.set(1, 0);
+			buff.mult(buff.lengthSquared());
+			node.addForce(buff);
 		}
 		return true;
 	}
-
-	public Ascio getTarget() {
-		return target;
-	}
-
-	public void setTarget(Ascio target) {
-		this.target = target;
-	}
-	
-	public void setNode(DynamicPhysicsNode node) {
-		this.node = node;
-	}
-
 }

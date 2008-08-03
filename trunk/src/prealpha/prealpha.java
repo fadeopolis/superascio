@@ -36,7 +36,7 @@ public class prealpha {
 		// TODO Auto-generated method stub
 		StandardGame app = new StandardGame("app");
 		if (true) {
-//p		if (GameSettingsPanel.prompt(app.getSettings())) {
+//		if (GameSettingsPanel.prompt(app.getSettings())) {
 			app.start();
 		
 			//first of all build util
