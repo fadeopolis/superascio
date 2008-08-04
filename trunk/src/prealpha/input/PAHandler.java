@@ -1,5 +1,6 @@
 package prealpha.input;
 
+import jmetest.input.TestHardwareMouse;
 import prealpha.ascio.*;
 import prealpha.enums.GameType;
 import prealpha.input.*;
@@ -8,11 +9,15 @@ import prealpha.util.*;
 import prealpha.state.*;
 
 import com.jme.animation.SpatialTransformer;
+import com.jme.image.Texture;
 import com.jme.input.*;
 import com.jme.math.*;
 import com.jme.renderer.*;
 import com.jme.scene.*;
+import com.jme.scene.state.AlphaState;
+import com.jme.scene.state.TextureState;
 import com.jme.system.DisplaySystem;
+import com.jme.util.TextureManager;
 import com.jmex.physics.*;
 
 public class PAHandler extends InputHandler {
@@ -25,7 +30,7 @@ public class PAHandler extends InputHandler {
 	 * The CAMERA! 
 	 */
 	Camera cam;
-	
+	ChaseCamera chaser;
 	/**
 	 * Node used for controlling the cam's movement
 	 */
@@ -43,12 +48,32 @@ public class PAHandler extends InputHandler {
 	float turnSpeed = 2f;
 	float moveSpeed = 25;
 	
+	AbsoluteMouse mouse;
+	
 	Vector3f vbuff = new Vector3f();
 	
 	public PAHandler( Ascio target, Camera cam) {
 		super();
 		this.target = target;
 		this.cam = cam;
+		
+		mouse = new AbsoluteMouse("Mouse Input", 800, 600);
+		mouse.registerWithInputHandler(this);
+		TextureState cursor = DisplaySystem.getDisplaySystem().getRenderer().createTextureState();
+		cursor.setTexture(TextureManager.loadTexture(
+				TestHardwareMouse.class.getClassLoader().getResource("jmetest/data/cursor/cursor1.png"),
+				Texture.MM_LINEAR, Texture.FM_LINEAR));
+		mouse.setRenderState(cursor);
+		AlphaState as1 = DisplaySystem.getDisplaySystem().getRenderer().createAlphaState();
+		as1.setBlendEnabled(true);
+		as1.setSrcFunction(AlphaState.SB_SRC_ALPHA);
+		as1.setDstFunction(AlphaState.DB_ONE_MINUS_SRC_ALPHA);
+		as1.setTestEnabled(true);
+		as1.setTestFunction(AlphaState.TF_GREATER);
+		mouse.setRenderState(as1);
+		
+		Node node = (Node) Util.util().getProp(Util.PropType.RootNode);
+		node.attachChild(mouse);
 		
 		camOffset.set(0, 3, 9);
 		
@@ -62,6 +87,9 @@ public class PAHandler extends InputHandler {
 				target.getNode().attachChild(camNode);
 				camNode.getLocalTranslation().set(camOffset);
 		*/
+		chaser = new ChaseCamera(cam, target.getNode());
+		chaser.setMaxDistance(50);
+		chaser.setMinDistance(10);
 			}
 	private void setupKeys( ) {
 				// TODO Auto-generated method stub
@@ -75,7 +103,7 @@ public class PAHandler extends InputHandler {
 				this.addAction(new ExitAction(), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_ESCAPE, InputHandler.AXIS_NONE, false);
 				
 				KeyBindingManager.getKeyBindingManager().add("changeMode", KeyInput.KEY_F10);
-				KeyBindingManager.getKeyBindingManager().add("swing", KeyInput.KEY_LCONTROL);
+				KeyBindingManager.getKeyBindingManager().add("swing", KeyInput.KEY_LSHIFT);
 			}
 
 	@Override
@@ -93,6 +121,8 @@ public class PAHandler extends InputHandler {
 		// TODO Auto-generated method stub
 		switch (type) {
 		case thirdPerson :
+			chaser.update(time);
+			/*
 			vbuff = target.getNode().getLocalRotation().getRotationColumn(2).mult(12).add(0,-4,0);
 			location = target.getNode().getLocalTranslation().subtract(vbuff);
 			left = target.getNode().getLocalRotation().getRotationColumn(0);
@@ -101,6 +131,7 @@ public class PAHandler extends InputHandler {
 			direction = target.getNode().getLocalTranslation().subtract(location);
 			cam.setLocation(location);
 			cam.lookAt( target.getNode().getLocalTranslation(), Vector3f.UNIT_Y);
+			*/
 			break;
 		case sideScroller :
 			vbuff = target.getNode().getLocalRotation().getRotationColumn(0).mult(12);
@@ -113,7 +144,7 @@ public class PAHandler extends InputHandler {
 			cam.lookAt( target.getNode().getLocalTranslation(), Vector3f.UNIT_Y);
 			break;
 		case isometric :
-			vbuff = Vector3f.UNIT_Y.mult(-100).add(10,0,0);
+			vbuff = Vector3f.UNIT_Y.mult(-50).add(target.getNode().getLocalRotation().getRotationColumn(0).mult(20));
 			location = target.getNode().getLocalTranslation().subtract(vbuff);
 			left = target.getNode().getLocalRotation().getRotationColumn(0);
 			//TODO : don't let the camera sink to far even, if ascio lies on his back

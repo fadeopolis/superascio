@@ -23,7 +23,7 @@ import com.jmex.physics.PhysicsSpace;
 public class Util {
 	public static Random rand = new Random();
 	
-	public enum PropType { Ascio, Camera, DisplaySystem, Renderer, PhysicsSpace};
+	public enum PropType { Ascio, Camera, DisplaySystem, Renderer, PhysicsSpace, RootNode};
 	
 	private static Util instance;
 
@@ -82,6 +82,10 @@ public class Util {
 			System.out.println("No Renderer in props");
 			stat = false;
 		}
+		if (instance.props.get(PropType.RootNode) == null) {
+			System.out.println("No RootNode in props");
+			stat = false;
+		}
 		return stat;
 	}
 	
@@ -101,8 +105,10 @@ public class Util {
 			type = PropType.Renderer;
 		} else if ( prop instanceof PhysicsSpace ) {
 			type = PropType.PhysicsSpace;
+		} else if ( prop instanceof Node ) {
+			type = PropType.RootNode;
 		} else {
-			return new String("FUCK");
+			return new String("FUCK YOU, INVALID PROP");
 		}
 		return props.put(type, prop);
 	}
@@ -153,8 +159,12 @@ public class Util {
 		return ( (v1.x-v2.x)*(v1.y-v2.y)*(v1.z-v2.z) )/3;
 	}
     
- 	public static void shout(String s) {
- 		System.out.println(s);
+ 	public static void shout(Object o) {
+ 		try {
+ 			System.out.println(o.toString());
+ 		} catch (Exception e) {
+ 			System.out.println(o);
+ 		}
  	}
  	
     public static void main(String[] args) {

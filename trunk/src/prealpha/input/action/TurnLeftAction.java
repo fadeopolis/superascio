@@ -1,7 +1,6 @@
 package prealpha.input.action;
 
 import prealpha.ascio.Ascio;
-import prealpha.input.MoveAction;
 import prealpha.util.Util;
 
 import com.jme.input.*;

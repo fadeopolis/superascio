@@ -1,7 +1,7 @@
 package prealpha.input.action;
 
 import prealpha.ascio.Ascio;
-import prealpha.input.MoveAction;
+import prealpha.util.Util;
 
 import com.jme.input.*;
 import com.jme.input.action.*;
@@ -17,7 +17,8 @@ public class JumpAction extends MoveAction {
     }
     
     public void performAction( InputActionEvent evt ) {
-    	target.getNode().addForce(jumpForce);
+    	Util.shout(target.getNode().getMass());
+    	target.getNode().addForce(Vector3f.UNIT_Y.mult(target.getNode().getMass()*jumpForce));
 //    	target.getNode().setLinearVelocity(jumpForce);
    }
 }

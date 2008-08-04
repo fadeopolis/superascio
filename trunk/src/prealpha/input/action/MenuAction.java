@@ -1,4 +1,4 @@
-package prealpha.input;
+package prealpha.input.action;
 
 import com.jme.input.*;
 import com.jme.input.action.*;

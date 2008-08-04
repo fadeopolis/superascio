@@ -12,7 +12,7 @@ import com.jme.scene.state.MaterialState;
 import com.jmex.physics.*;
 import com.jmex.physics.material.Material;
 
-public abstract class Ascio implements Updateable, Destructible {
+public abstract class Ascio extends Node implements Updateable, Destructible {
 
 	/** the node for handling all physical interactions */
 	protected DynamicPhysicsNode node;
@@ -31,6 +31,7 @@ public abstract class Ascio implements Updateable, Destructible {
 	 */
 	public Ascio(PhysicsSpace space) {
 		node = space.createDynamicNode();
+		this.attachChild(node);
 		
 		//TODO : should health be measured in percent? meaning a float clamped between [0,1]
 		health = 100;
