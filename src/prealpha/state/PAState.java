@@ -90,6 +90,7 @@ public class PAState extends PhysicsGameState {
 		//space = PhysicsSpace.create();
 		factory = new CharacterFactory(this.getPhysicsSpace(), rootNode);
 		//build();
+		Util.util().putProp(rootNode);
 	}
 	/**
 	 * Convenience method for building the state
@@ -333,17 +334,18 @@ public class PAState extends PhysicsGameState {
 		// TODO Auto-generated method stub
 		System.out.println("SETTING UP FOES");
 		
-		foeNode = new Node();
+		foeNode = new Node("FoeNode");
 		rootNode.attachChild(foeNode);
 		foeNode.setLocalTranslation(10, 0, 10);
 		
 		foes = new HashMap<Node, Foe>();
 		
-		for (int i=0; i < 1; i++) {
+		for (int i=0; i < 10; i++) {
 			BadBall proto = new BadBall(getPhysicsSpace().createDynamicNode());
 			proto.getNode().getLocalTranslation().set(0, 5*i);
-			foeNode.attachChild(proto.getNode());
+			foeNode.attachChild(proto);
 			foes.put(proto.getNode(), proto);
+			System.out.println(proto.getClass());
 		}
 		
 		System.out.println("FOES SET UP");
@@ -351,9 +353,9 @@ public class PAState extends PhysicsGameState {
 	protected void setupPlayer() {
 		System.out.println("SETTING UP PLAYER");
 
-		ascio = factory.createPlayer();
-		rootNode.attachChild(ascio.getNode());
-		ascio.getNode().getLocalTranslation().add(0, 30, 0);
+		ascio = new ModelAscio(this.getPhysicsSpace());
+		rootNode.attachChild(ascio);
+		ascio.getLocalTranslation().add(0, 30, 0);
 		//ascio.getNode().setAffectedByGravity(false);
 		
 		Util.util().putProp(ascio);
@@ -393,32 +395,21 @@ public class PAState extends PhysicsGameState {
 		ContactCallback contact = new ContactCallback() {
 			@Override
 			public boolean adjustContact(PendingContact contact) {
-				// TODO Auto-generated method stub
-				//contact.getNode1();
-				if ( contact.getNode1() == ascio.getNode() || contact.getNode1() == ascio.getNode() ) {
-					Foe f = foes.get(contact.getNode1());
-					if (f == null) f = foes.get(contact.getNode2());
+				// TODO Auto-generated method stud
+				Node a = contact.getNode1();
+				Node b = contact.getNode2();
+				DynamicPhysicsNode pbuff;
+				
+				if ( a == ascio.getNode() && b.getParent() instanceof Foe) {
+					ascio.damage(5);					
+					pbuff = (DynamicPhysicsNode) b;
+					pbuff.addForce(Vector3f.UNIT_Y.mult(1000));
+				} else if ( b == ascio.getNode() && a.getParent() instanceof Foe) {
+					ascio.damage(5);
 					
-					if (f != null) {
-						ascio.damage(5);
-						BadBall b = (BadBall) f;
-						vbuff.set(0, 1000, 0);
-						b.getNode().addForce(vbuff);
-						System.out.println("YOU GOT HIT");
-					}
-					
-					return false;
-				} else if ( contact.getNode1() == ascio.getWeapon().getNode() || contact.getNode1() == ascio.getWeapon().getNode() ) {
-					Foe f = foes.get(contact.getNode1());
-					if (f == null) f = foes.get(contact.getNode2());
-					
-					if (f != null) {
-						f.damage(15);
-						System.out.println("HIT THE ENEMY");
-					}
-					
-					return false;
-				} 
+					pbuff = (DynamicPhysicsNode) a;
+					pbuff.addForce(Vector3f.UNIT_Y.mult(1000));
+				}
 				return false;
 			}			
 		};
@@ -429,6 +420,8 @@ public class PAState extends PhysicsGameState {
 		this.getPhysicsSpace().addToUpdateCallbacks(friction);
 		this.getPhysicsSpace().addToUpdateCallbacks(new Callback());
 		this.getPhysicsSpace().getContactCallbacks().add(contact);
+		
+		this.getPhysicsSpace().setDirectionalGravity(vbuff.set(0, -9.81f, 0));
 		
 		System.out.println("PHYSICS SET UP");
 	}
@@ -548,32 +541,32 @@ public class PAState extends PhysicsGameState {
 		ZCL = Util.round(cam.getLocation().z);	
 		ZCR = Util.round(qbuff.z);
 		WCR = Util.round(qbuff.w);
-		
-		text[15].print("Ascio");
-		vbuff = ascio.getNode().getAngularVelocity(vbuff);
-		text[14].print("Angular Velocity    : X:"+Util.round(vbuff.x)+" Y:"+Util.round(vbuff.y)+" Z:"+Util.round(vbuff.z));
-		vbuff = ascio.getNode().getLinearVelocity(vbuff);
-		text[13].print("Linear Velocity     : X:"+Util.round(vbuff.x)+" Y:"+Util.round(vbuff.y)+" Z:"+Util.round(vbuff.z));
-		vbuff = ascio.getNode().getForce(vbuff);
-		text[12].print("Force               : X:"+Util.round(vbuff.x)+" Y:"+Util.round(vbuff.y)+" Z:"+Util.round(vbuff.z));
-		text[11].print("Location            : X:"+XAL+" Y:"+YAL+" Z:"+ZAL );
-		text[10].print("Rotation Quaternion : X:"+XAR+" Y:"+YAR+" Z:"+ZAR+" W:"+WAR );
-		text[9].print("Rotation Column 0   : X:"+XAc0+" Y:"+YAc0+" Z:"+ZAc0 );
-		text[8].print("Rotation Column 1   : X:"+XAc1+" Y:"+YAc1+" Z:"+ZAc1 );
-		text[7].print("Rotation Column 2   : X:"+XAc2+" Y:"+YAc2+" Z:"+ZAc2 );
 		/*
-		text[6].print("Camera");
-		text[5].print("Location            : X:"+XCL+" Y:"+YCL+" Z:"+ZCL );
-		text[4].print("Rotation Quaternion : X:"+XCR+" Y:"+YCR+" Z:"+ZCR+" W:"+WCR );
-		text[3].print("Rotation Left       : X:"+XCc0+" Y:"+YCc0+" Z:"+ZCc0 );
-		text[2].print("Rotation Up         : X:"+XCc1+" Y:"+YCc1+" Z:"+ZCc1 );
-		text[1].print("Rotation Direction  : X:"+XCc2+" Y:"+YCc2+" Z:"+ZCc2 );
+		text[16].print("Ascio");
+		vbuff = ascio.getNode().getAngularVelocity(vbuff);
+		text[15].print("Angular Velocity    : X:"+Util.round(vbuff.x)+" Y:"+Util.round(vbuff.y)+" Z:"+Util.round(vbuff.z));
+		vbuff = ascio.getNode().getLinearVelocity(vbuff);
+		text[14].print("Linear Velocity     : X:"+Util.round(vbuff.x)+" Y:"+Util.round(vbuff.y)+" Z:"+Util.round(vbuff.z));
+		vbuff = ascio.getNode().getForce(vbuff);
+		text[13].print("Force               : X:"+Util.round(vbuff.x)+" Y:"+Util.round(vbuff.y)+" Z:"+Util.round(vbuff.z));
+		text[12].print("Location            : X:"+XAL+" Y:"+YAL+" Z:"+ZAL );
+		text[11].print("Rotation Quaternion : X:"+XAR+" Y:"+YAR+" Z:"+ZAR+" W:"+WAR );
+		text[10].print("Rotation Column 0   : X:"+XAc0+" Y:"+YAc0+" Z:"+ZAc0 );
+		text[9].print("Rotation Column 1   : X:"+XAc1+" Y:"+YAc1+" Z:"+ZAc1 );
+		text[8].print("Rotation Column 2   : X:"+XAc2+" Y:"+YAc2+" Z:"+ZAc2 );
+		text[7].print("Camera");
+		text[6].print("Location            : X:"+XCL+" Y:"+YCL+" Z:"+ZCL );
+		text[5].print("Rotation Quaternion : X:"+XCR+" Y:"+YCR+" Z:"+ZCR+" W:"+WCR );
+		text[4].print("Rotation Left       : X:"+XCc0+" Y:"+YCc0+" Z:"+ZCc0 );
+		text[3].print("Rotation Up         : X:"+XCc1+" Y:"+YCc1+" Z:"+ZCc1 );
+		text[2].print("Rotation Direction  : X:"+XCc2+" Y:"+YCc2+" Z:"+ZCc2 );
  		*/
-		text[0].print("FPS: "+ timer.getFrameRate());
+		text[1].print("HEALTH: " + ascio.getHealth());
+		text[0].print("FPS: " + timer.getFrameRate());
  	}
  	private void updateFoes(float time) {
 		for ( Foe f : foes.values()) {
-			f.update(time);	
+			f.update(time);
 			if (true) {
 			//if ( this.getPhysicsSpace().collide(floorNode, f.getNode())) {
 			//if ( f.getWorldBound().intersects(floorNode.getWorldBound())) {

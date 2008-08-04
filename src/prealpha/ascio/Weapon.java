@@ -5,11 +5,13 @@ import com.jmex.physics.DynamicPhysicsNode;
 import com.jmex.physics.PhysicsSpace;
 
 public abstract class Weapon {
-	protected DynamicPhysicsNode node;
+	protected Node node;
 	
 	public Weapon(PhysicsSpace space) {
-		node = space.createDynamicNode();
-		node.getLocalTranslation().set(0, 0, 2.5f);
+		//node = space.createDynamicNode();
+		node = new Node();
+		
+		node.getLocalTranslation().set(0, .0f, 2.f);
 	}
 	
 	public abstract boolean fire();
@@ -18,7 +20,7 @@ public abstract class Weapon {
 		
 	}
 	
-	public DynamicPhysicsNode getNode() {
+	public Node getNode() {
 		return node;
 	}
 }

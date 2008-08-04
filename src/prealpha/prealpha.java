@@ -47,7 +47,7 @@ public class prealpha {
 			props.put(PropType.Camera, DisplaySystem.getDisplaySystem().getRenderer().getCamera());
 		
 			Util.create(props);
-			Util.check();
+
 		
 			//	DebugGameState debug = new DebugGameState();
 			//	GameStateManager.getInstance().attachChild(debug);
@@ -60,6 +60,8 @@ public class prealpha {
 			physics.build();
 				
 			GameStateManager.getInstance().activateAllChildren();	
+			
+			Util.check();
 		}
 	}	
 }

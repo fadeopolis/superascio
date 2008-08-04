@@ -1,6 +1,6 @@
 /**
- * DEV - Stage
- * TODO : Finish it, cleanup
+ * this is for testing stuff
+ * 
  */
 
 package prealpha;
@@ -9,6 +9,8 @@ import java.util.ArrayList;
 
 import prealpha.ascio.Ascio;
 import prealpha.ascio.BoxAscio;
+import prealpha.ascio.ModelAscio;
+import prealpha.foes.BadBall;
 import prealpha.input.PAHandler;
 import prealpha.util.Util;
 import sun.applet.Main;
@@ -25,6 +27,7 @@ import com.jme.math.Vector3f;
 import com.jme.renderer.Camera;
 import com.jme.renderer.ColorRGBA;
 import com.jme.scene.Node;
+import com.jme.scene.Spatial;
 import com.jme.scene.shape.*;
 import com.jme.scene.state.LightState;
 import com.jme.scene.state.MaterialState;
@@ -63,53 +66,36 @@ public class foobar {
 			phys = new PhysicsGameState("phys");
 			GameStateManager.getInstance().attachChild(phys);
 
-			Node node = new Node();
-			
-			DynamicPhysicsNode base = phys.getPhysicsSpace().createDynamicNode();
-			//base.setAffectedByGravity(false);
-			Sphere baseVis = new Sphere("base", Vector3f.ZERO, 20, 20, 1);
-			base.attachChild(baseVis);
-			MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-			state.setAmbient(ColorRGBA.red);
-			base.setRenderState(state);
-			PhysicsBox basePhys = base.createBox("phys");
-			basePhys.setLocalScale(new Vector3f(2f, 2f, 2f));
-			base.setMass(2);
-			debug.getRootNode().attachChild(base);
-			
-			DynamicPhysicsNode body = phys.getPhysicsSpace().createDynamicNode();
-			body.setAffectedByGravity(false);
-			Box bodyVis = new Box("", Vector3f.UNIT_Y.mult(3.f), 1f, 2f, .75f);
-			body.attachChild(bodyVis);
-			state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-			state.setAmbient(ColorRGBA.blue);
-			body.setRenderState(state);
-			PhysicsBox bodyPhys = body.createBox("phys");
-			bodyPhys.setLocalScale(new Vector3f(1.5f,3f,2));
-			body.setMass(1);
-			debug.getRootNode().attachChild(body);
-			
-	        final Joint joint = phys.getPhysicsSpace().createJoint();
-	        joint.attach( base );
-	        JointAxis axis = joint.createRotationalAxis();
-	        axis.setDirection( new Vector3f( 1, 0, 0 ) );
-
-	        Joint joint2 = phys.getPhysicsSpace().createJoint();
-	        joint2.attach( base,  body );
-	        JointAxis axis2 = joint2.createTranslationalAxis();
-	        axis2.setDirection( new Vector3f( 1, 1, 1 ) );
-	 //       joint2.setCollisionEnabled( true );	
-			
+			// make a floor
 			StaticPhysicsNode floor = phys.getPhysicsSpace().createStaticNode();
 			floor.attachChild(new Box("", Vector3f.UNIT_Y.mult(-2.5f), 10, 1, 10 ));
 			//floor.attachChild(new Box("", Vector3f.UNIT_Y.mult(2.5f), 10, 1, 10 ));
 			floor.generatePhysicsGeometry();
-			state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
+			MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
 			state.setAmbient(new ColorRGBA(.5f, .5f, .5f, .5f));
 			debug.getRootNode().attachChild(floor);
 			
+			// make a ascio
+			
+			BadBall ascio = new BadBall(phys.getPhysicsSpace().createDynamicNode());
+			debug.getRootNode().attachChild(ascio);
 		//	body.addTorque(new Vector3f(0, 1000, 0));
 		//	body.addForce(new Vector3f(500,0,000));
+			Spatial foo = ascio.getNode();//.getChild(0);
+			
+			int ibuff = 0;
+			try {
+				System.out.println(ibuff);
+				System.out.println(foo.getClass() + "    " + foo.getName() );
+				System.out.println(foo.getParent().getClass() + "    "+ foo.getParent().getName());
+				System.out.println(foo.getParent().getParent().getClass() + "    "+ foo.getParent().getParent().getName());
+				System.out.println(foo.getParent().getParent().getParent().getClass() + "    "+ foo.getParent().getParent().getParent().getName());
+				System.out.println(foo.getParent().getParent().getParent().getParent().getClass() + "    "+ foo.getParent().getParent().getParent().getParent().getName());
+				System.out.println(ibuff++);
+			} catch (Exception e) {
+			
+			}
+
 			
 			debug.getRootNode().updateRenderState();
 			

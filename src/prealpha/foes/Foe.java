@@ -3,6 +3,7 @@ package prealpha.foes;
 import prealpha.ascio.Ascio;
 import prealpha.interfaces.Destructible;
 import prealpha.interfaces.Updateable;
+import prealpha.util.Util;
 
 import com.jme.math.Vector3f;
 import com.jme.scene.Node;
@@ -20,7 +21,11 @@ public abstract class Foe extends Node implements Destructible, Updateable {
 	public boolean update;
 	
 	public Foe(DynamicPhysicsNode node) {
+		this.setName("Foe Itself");
 		this.node = node;
+		this.attachChild(node);
+		node.setName("Foe Physics");
+		Util.shout(node.getParent().getClass() + "  " + node.getParent().getName());
 		health = 100;
 		update = false;
 	}
@@ -45,6 +50,5 @@ public abstract class Foe extends Node implements Destructible, Updateable {
 	}
 	public void setTarget(Ascio target) {
 		this.target = target;
-		System.out.println("TARGET set");
 	}
 }

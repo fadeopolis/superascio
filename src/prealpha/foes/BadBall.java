@@ -42,9 +42,8 @@ public class BadBall extends Foe  {
 	public void update(float time) {
 		// TODO Auto-generated method stub
 		if ( target != null && update) {
-			//System.out.println("UPDATE");
 			goTo(target.getNode().getWorldTranslation());
-		} else System.out.println("NO UPDATE");
+		}
 	}
 	
 	@Override

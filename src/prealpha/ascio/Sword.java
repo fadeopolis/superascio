@@ -1,28 +1,46 @@
 package prealpha.ascio;
 
+import prealpha.util.Util;
+
 import com.jme.animation.SpatialTransformer;
 import com.jme.bounding.BoundingBox;
 import com.jme.math.*;
+import com.jme.renderer.ColorRGBA;
 import com.jme.scene.*;
 import com.jme.scene.shape.*;
+import com.jme.scene.state.MaterialState;
+import com.jme.system.DisplaySystem;
 import com.jmex.physics.PhysicsSpace;
 
 public class Sword extends Weapon {
 	public Sword(PhysicsSpace space) {
 		super(space);
 		
-		Box hilt1 = new Box("hilt", Vector3f.ZERO, .2f, .2f, .5f);
-		Box hilt2 = new Box("hilt", Vector3f.ZERO, .2f, .5f, .2f);
-		Box blade = new Box("blade", Vector3f.UNIT_Z.mult(1.5f), .2f, .2f, .75f);
+		Box hilt1 = new Box("hilt", Vector3f.ZERO, .15f, .2f, .5f);
+		Box hilt2 = new Box("hilt", Vector3f.ZERO, .15f, .5f, .2f);
+		Box blade = new Box("blade", Vector3f.UNIT_Z.mult(2.f), .1f, .2f, 1.25f);
 		
 		node.attachChild(hilt1);
 		node.attachChild(hilt2);
 		node.attachChild(blade);
 		
+		MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
+		state.setAmbient(ColorRGBA.white);
+		state.setDiffuse(ColorRGBA.lightGray);
+		state.setSpecular(ColorRGBA.lightGray);
+		state.setShininess(100);
+		
+		node.setRenderState(state);
+		node.updateRenderState();
+		
+		//node.getLocalRotation().fromAngleAxis(-030*FastMath.DEG_TO_RAD, Vector3f.UNIT_X);
+		//Util.shout(node.getLocalRotation().toString());
+		node.getLocalRotation().set( -.2f, 0, 0, .97f);
+		
 		node.setModelBound(new BoundingBox());
 		node.updateModelBound();
 		
-		node.generatePhysicsGeometry();
+		//node.generatePhysicsGeometry();
 			
 	}
 	
