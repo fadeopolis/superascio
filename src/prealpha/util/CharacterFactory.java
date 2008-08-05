@@ -29,7 +29,7 @@ public class CharacterFactory {
 	
 	public BoxAscio createPlayer() {
 		BoxAscio ascio = new BoxAscio(space);
-		root.attachChild(ascio.getNode());
+		root.attachChild(ascio.getPhysicsNode());
 		return ascio;
 	}
 }

@@ -17,8 +17,8 @@ public class JumpAction extends MoveAction {
     }
     
     public void performAction( InputActionEvent evt ) {
-    	Util.shout(target.getNode().getMass());
-    	target.getNode().addForce(Vector3f.UNIT_Y.mult(target.getNode().getMass()*jumpForce));
+    	Util.shout(target.getPhysicsNode().getMass());
+    	target.getPhysicsNode().addForce(Vector3f.UNIT_Y.mult(target.getPhysicsNode().getMass()*jumpForce));
 //    	target.getNode().setLinearVelocity(jumpForce);
    }
 }

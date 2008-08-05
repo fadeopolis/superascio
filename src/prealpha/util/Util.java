@@ -119,15 +119,37 @@ public class Util {
 	 * @param i precision
 	 * @return
 	 */
-    public static float round(float f) {
+    public static float round(float f ) {
     	f*=1000;
     	f = (int) f;
     	f/=1000;
     	return f;
     }
     
+    public static Vector3f round( Vector3f v ) {
+    	v.set( round(v.x), round(v.y), round(v.z));
+    	return v;
+    }
+    
+    public static int randomInt ( int range) {
+    	return rand.nextInt(range);
+    }
+    
     public static int randomInt ( int range, boolean negativePossible) {
-    	return negativePossible ? ( rand.nextBoolean() ? rand.nextInt(range) : rand.nextInt(range)*-1 ) : ( rand.nextInt(range) );
+    	if (negativePossible) {
+    		return rand.nextBoolean() ? rand.nextInt(range) : rand.nextInt(range)*-1;
+    	} else {
+    		return rand.nextInt(range);
+    	}
+    }
+
+    
+    public static int randomInt ( int rangeMax, int rangeMin, boolean negativePossible) {
+    	if (negativePossible) {
+    		return rand.nextBoolean() ? (rand.nextInt()+rangeMin)%rangeMax : ((rand.nextInt()+rangeMin)%rangeMax)*-1;
+    	} else {
+    		return (rand.nextInt()+rangeMin)%rangeMax;
+    	}
     }
     
     /**
@@ -168,5 +190,6 @@ public class Util {
  	}
  	
     public static void main(String[] args) {
-		}
+    	
+	}
 }

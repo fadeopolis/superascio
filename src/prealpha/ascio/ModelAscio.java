@@ -25,32 +25,36 @@ import com.jmex.physics.geometry.PhysicsBox;
 import com.jmex.physics.material.Material;
 
 public class ModelAscio extends Ascio  {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+
 	protected ColorRGBA healthColor;
 	protected Box leftPart;
 	protected Box centerPart;
 	protected Box rightPart;
 	
 	public ModelAscio( PhysicsSpace space ) {
-		super(space);
-				
+		this(null, space);
+	}
+	
+	public ModelAscio( String name, PhysicsSpace space ) {
+		this( name, null, space );
+	}
+	
+	public ModelAscio( String name, Vector3f location, PhysicsSpace space ) {
+		super(name , location, space);
+			
 		/* create visuals for ascio */
 		File file = new File("data/model/ascio.jme");
 		Node model = new Node();
-		
-		if (file.exists() && file.canRead()) System.out.println("HUZZAH!"); else System.exit(1);
-		
+				
 		try {
 			BinaryImporter importer = new BinaryImporter();
 			Node foo = (Node)importer.load(file.toURI().toURL().openStream());
 			foo.setLocalScale(new Vector3f(12.5f, 15f, 7.5f));
 			foo.getLocalRotation().fromAngleNormalAxis(90*FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
-			foo.getLocalTranslation().set(0.2f, -1.5f, 1.25f);
+			foo.setLocalTranslation(0.2f, -1.5f, 1.25f);
 			model.attachChild(foo);
-			node.attachChild(model);
+			physicsNode.attachChild(model);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -78,26 +82,26 @@ public class ModelAscio extends Ascio  {
 		*/
 		model.setRenderState(state);
 		
-		node.setModelBound(new BoundingBox());
-		node.updateModelBound();
+		physicsNode.setModelBound(new BoundingBox());
+		physicsNode.updateModelBound();
 		
 		/* setup the physics for ascio */
 		//node.setAffectedByGravity(false);
 //		node.generatePhysicsGeometry();	
-		PhysicsBox box = node.createBox("Ascio Physics");
+		PhysicsBox box = physicsNode.createBox("Ascio Physics");
 		box.getLocalTranslation().set(1, -.2f);
-		box.setLocalScale(new Vector3f(2f, 3.2f, 2));
+		box.setLocalScale(new Vector3f(2f, 3.2f, 2.5f));
 		Material m = new Material();
 		m.setDensity(15);
-		node.setMaterial(Material.PLASTIC);
-		node.computeMass();
-		node.setCenterOfMass(new Vector3f(0,-1.5f,0));
+		physicsNode.setMaterial(Material.PLASTIC);
+		physicsNode.computeMass();
+		physicsNode.setCenterOfMass(new Vector3f(0,-1.5f,0));
 
-		node.updateRenderState();
+		physicsNode.updateRenderState();
 		
 		/* setup the weapon */
 		weapon = new Sword(space);
-		node.attachChild(weapon.getNode());
+		physicsNode.attachChild(weapon.getNode());
 		
 		//Joint j = space.createJoint();
 		//j.attach(node, weapon.getNode());
@@ -108,10 +112,10 @@ public class ModelAscio extends Ascio  {
 		
 		if (health < 66) {
 			healthColor = ColorRGBA.yellow;
-			node.updateRenderState();
+			physicsNode.updateRenderState();
 		} else if (health < 33) {
 			healthColor = ColorRGBA.red;	
-			node.updateRenderState();
+			physicsNode.updateRenderState();
 		}
 			
 	}

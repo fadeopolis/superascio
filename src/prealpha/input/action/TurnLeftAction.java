@@ -20,10 +20,10 @@ public class TurnLeftAction extends MoveAction {
     public void performAction( InputActionEvent evt ) {
 		switch (type) {
 		case thirdPerson :
-			target.getNode().addTorque(turnLeft);			
+			target.getPhysicsNode().addTorque(turnLeft);			
 			break;
 		case isometric :
-			target.getNode().addTorque(turnLeft);
+			target.getPhysicsNode().addTorque(turnLeft);
 			break;
 		default :
 			break;

@@ -19,10 +19,10 @@ public class TurnRightAction extends MoveAction {
     public void performAction( InputActionEvent evt ) {
 		switch (type) {
 		case thirdPerson :
-			target.getNode().addTorque(turnRight);
+			target.getPhysicsNode().addTorque(turnRight);
 			break;
 		case isometric :
-			target.getNode().addTorque(turnRight);
+			target.getPhysicsNode().addTorque(turnRight);
 			break;
 		default :
 			break;
