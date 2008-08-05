@@ -19,10 +19,10 @@ public class StrafeLeftAction extends MoveAction {
 		// TODO Auto-generated method stub
 		switch (type) {
 		case thirdPerson :
-			target.getNode().addForce(target.getLeft().mult(strafeSpeed));
+			target.getPhysicsNode().addForce(target.getLeft().mult(strafeSpeed));
 			break;
 		case isometric :
-			target.getNode().addForce(target.getLeft().mult(strafeSpeed));
+			target.getPhysicsNode().addForce(target.getLeft().mult(strafeSpeed));
 			break;
 		default :
 			break;

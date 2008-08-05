@@ -87,7 +87,7 @@ public class PAHandler extends InputHandler {
 				target.getNode().attachChild(camNode);
 				camNode.getLocalTranslation().set(camOffset);
 		*/
-		chaser = new ChaseCamera(cam, target.getNode());
+		chaser = new ChaseCamera(cam, target);
 		chaser.setMaxDistance(50);
 		chaser.setMinDistance(10);
 			}
@@ -121,37 +121,37 @@ public class PAHandler extends InputHandler {
 		// TODO Auto-generated method stub
 		switch (type) {
 		case thirdPerson :
-			chaser.update(time);
-			/*
-			vbuff = target.getNode().getLocalRotation().getRotationColumn(2).mult(12).add(0,-4,0);
-			location = target.getNode().getLocalTranslation().subtract(vbuff);
-			left = target.getNode().getLocalRotation().getRotationColumn(0);
+			//chaser.update(time);
+			
+			vbuff = target.getPhysicsNode().getLocalRotation().getRotationColumn(2).mult(12).add(0,-4,0);
+			location = target.getPhysicsNode().getLocalTranslation().subtract(vbuff);
+			left = target.getPhysicsNode().getLocalRotation().getRotationColumn(0);
 			//TODO : don't let the camera sink to far even, if ascio lies on his back
-			up = target.getNode().getLocalRotation().getRotationColumn(1);
-			direction = target.getNode().getLocalTranslation().subtract(location);
+			up = target.getPhysicsNode().getLocalRotation().getRotationColumn(1);
+			direction = target.getPhysicsNode().getLocalTranslation().subtract(location);
 			cam.setLocation(location);
-			cam.lookAt( target.getNode().getLocalTranslation(), Vector3f.UNIT_Y);
-			*/
+			cam.lookAt( target.getPhysicsNode().getLocalTranslation(), Vector3f.UNIT_Y);
+			
 			break;
 		case sideScroller :
-			vbuff = target.getNode().getLocalRotation().getRotationColumn(0).mult(12);
-			location = target.getNode().getLocalTranslation().subtract(vbuff);
-			left = target.getNode().getLocalRotation().getRotationColumn(0);
+			vbuff = target.getPhysicsNode().getLocalRotation().getRotationColumn(0).mult(12);
+			location = target.getPhysicsNode().getLocalTranslation().subtract(vbuff);
+			left = target.getPhysicsNode().getLocalRotation().getRotationColumn(0);
 			//TODO : don't let the camera sink to far even, if ascio lies on his back
-			up = target.getNode().getLocalRotation().getRotationColumn(1);
-			direction = target.getNode().getLocalTranslation().subtract(location);
+			up = target.getPhysicsNode().getLocalRotation().getRotationColumn(1);
+			direction = target.getPhysicsNode().getLocalTranslation().subtract(location);
 			cam.setLocation(location);
-			cam.lookAt( target.getNode().getLocalTranslation(), Vector3f.UNIT_Y);
+			cam.lookAt( target.getPhysicsNode().getLocalTranslation(), Vector3f.UNIT_Y);
 			break;
 		case isometric :
-			vbuff = Vector3f.UNIT_Y.mult(-50).add(target.getNode().getLocalRotation().getRotationColumn(0).mult(20));
-			location = target.getNode().getLocalTranslation().subtract(vbuff);
-			left = target.getNode().getLocalRotation().getRotationColumn(0);
+			vbuff = Vector3f.UNIT_Y.mult(-50).add(target.getPhysicsNode().getLocalRotation().getRotationColumn(0).mult(20));
+			location = target.getPhysicsNode().getLocalTranslation().subtract(vbuff);
+			left = target.getPhysicsNode().getLocalRotation().getRotationColumn(0);
 			//TODO : don't let the camera sink to far even, if ascio lies on his back
-			up = target.getNode().getLocalRotation().getRotationColumn(1);
-			direction = target.getNode().getLocalTranslation().subtract(location);
+			up = target.getPhysicsNode().getLocalRotation().getRotationColumn(1);
+			direction = target.getPhysicsNode().getLocalTranslation().subtract(location);
 			cam.setLocation(location);
-			cam.lookAt( target.getNode().getLocalTranslation(), Vector3f.UNIT_Y);
+			cam.lookAt( target.getPhysicsNode().getLocalTranslation(), Vector3f.UNIT_Y);
 			break;
 		default :
 			break;
@@ -187,18 +187,18 @@ public class PAHandler extends InputHandler {
 	/** prevents ascio from spinning or moving to fast */
 	private void limitForces() {
 		// limit movement speed
-		target.getNode().getLinearVelocity(vbuff);
+		target.getPhysicsNode().getLinearVelocity(vbuff);
 		vbuff.set(0, vbuff.x > moveSpeed ? moveSpeed : vbuff.x < -moveSpeed ? -moveSpeed : vbuff.x);
 		//vbuff.set(1, vbuff.y > moveSpeed ? moveSpeed : vbuff.y < -moveSpeed ? -moveSpeed : vbuff.y);
 		vbuff.set(2, vbuff.z > moveSpeed ? moveSpeed : vbuff.z < -moveSpeed ? -moveSpeed : vbuff.z);
-		target.getNode().setLinearVelocity(vbuff);
+		target.getPhysicsNode().setLinearVelocity(vbuff);
 		
 		// limit turning speed
-		target.getNode().getAngularVelocity(vbuff);
+		target.getPhysicsNode().getAngularVelocity(vbuff);
 		vbuff.set(0, vbuff.x > turnSpeed ? turnSpeed : vbuff.x < -turnSpeed ? -turnSpeed : vbuff.x);
 		vbuff.set(1, vbuff.y > turnSpeed ? turnSpeed : vbuff.y < -turnSpeed ? -turnSpeed : vbuff.y);
 		vbuff.set(2, vbuff.z > turnSpeed ? turnSpeed : vbuff.z < -turnSpeed ? -turnSpeed : vbuff.z);
-		target.getNode().setAngularVelocity(vbuff);
+		target.getPhysicsNode().setAngularVelocity(vbuff);
 	}
 
 	public void setGameType( GameType type ) {

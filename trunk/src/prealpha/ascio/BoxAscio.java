@@ -26,8 +26,16 @@ public class BoxAscio extends Ascio  {
 	protected Box rightPart;
 	
 	public BoxAscio( PhysicsSpace space ) {
-		super(space);
-		
+		this(null, space);
+	}
+	
+	public BoxAscio( String name, PhysicsSpace space ) {
+		this( name, null, space );
+	}
+	
+	public BoxAscio( String name, Vector3f location, PhysicsSpace space ) {
+		super(name , location, space);
+	
 		/* create visuals for ascio */
 		//TODO: use a proper model for ascio, not just boxes
 		//File file = new File("data/model/ascio.jme");
@@ -51,7 +59,7 @@ public class BoxAscio extends Ascio  {
 		state.setAmbient(ColorRGBA.lightGray);
 		state.setDiffuse(ColorRGBA.white);
 		state.setShininess(5f);
-		node.setRenderState(state);
+		physicsNode.setRenderState(state);
 		
 		MaterialState stateCenter = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
 		centerPart.setRenderQueueMode(Renderer.QUEUE_TRANSPARENT);
@@ -59,32 +67,29 @@ public class BoxAscio extends Ascio  {
 		stateCenter.setDiffuse(healthColor);		
 		centerPart.setRenderState(stateCenter);
 		
-		node.attachChild(leftPart);
-		node.attachChild(centerPart);
-		node.attachChild(rightPart);
-		node.setModelBound(new BoundingBox());
-		node.updateModelBound();
+		physicsNode.attachChild(leftPart);
+		physicsNode.attachChild(centerPart);
+		physicsNode.attachChild(rightPart);
+		physicsNode.setModelBound(new BoundingBox());
+		physicsNode.updateModelBound();
 		
 		/* setup the physics for ascio */
 		//node.setAffectedByGravity(false);
-		node.generatePhysicsGeometry();	/*
+		physicsNode.generatePhysicsGeometry();	/*
 		PhysicsBox box = node.createBox("Ascio Physics");
 		box.getLocalTranslation().set(1, -.2f);
 		box.setLocalScale(new Vector3f(1.3f, 3.2f, 2));*/
 		Material m = new Material();
 		m.setDensity(5);
-		node.setMaterial(Material.PLASTIC);
-		node.computeMass();
-		node.setCenterOfMass(new Vector3f(0,-1.5f,0));
+		physicsNode.setMaterial(Material.PLASTIC);
+		physicsNode.computeMass();
+		physicsNode.setCenterOfMass(new Vector3f(0,-1.5f,0));
 
-		node.updateRenderState();
+		physicsNode.updateRenderState();
 		
 		/* setup the weapon */
 		weapon = new Sword(space);
 		this.attachChild(weapon.getNode());
-		
-		//Joint j = space.createJoint();
-		//j.attach(node, weapon.getNode());
 	}	
 
 	public void damage(int damage) {
@@ -92,10 +97,10 @@ public class BoxAscio extends Ascio  {
 		
 		if (health < 66) {
 			healthColor = ColorRGBA.yellow;
-			node.updateRenderState();
+			physicsNode.updateRenderState();
 		} else if (health < 33) {
 			healthColor = ColorRGBA.red;	
-			node.updateRenderState();
+			physicsNode.updateRenderState();
 		}
 			
 	}

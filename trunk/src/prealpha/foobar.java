@@ -77,25 +77,10 @@ public class foobar {
 			
 			// make a ascio
 			
-			BadBall ascio = new BadBall(phys.getPhysicsSpace().createDynamicNode());
+			BadBall ascio = new BadBall(phys.getPhysicsSpace());
 			debug.getRootNode().attachChild(ascio);
 		//	body.addTorque(new Vector3f(0, 1000, 0));
 		//	body.addForce(new Vector3f(500,0,000));
-			Spatial foo = ascio.getNode();//.getChild(0);
-			
-			int ibuff = 0;
-			try {
-				System.out.println(ibuff);
-				System.out.println(foo.getClass() + "    " + foo.getName() );
-				System.out.println(foo.getParent().getClass() + "    "+ foo.getParent().getName());
-				System.out.println(foo.getParent().getParent().getClass() + "    "+ foo.getParent().getParent().getName());
-				System.out.println(foo.getParent().getParent().getParent().getClass() + "    "+ foo.getParent().getParent().getParent().getName());
-				System.out.println(foo.getParent().getParent().getParent().getParent().getClass() + "    "+ foo.getParent().getParent().getParent().getParent().getName());
-				System.out.println(ibuff++);
-			} catch (Exception e) {
-			
-			}
-
 			
 			debug.getRootNode().updateRenderState();
 			
