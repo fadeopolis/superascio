@@ -1,17 +1,15 @@
-package prealpha.ascio;
+package prealpha.ascio.weapon;
 
 import com.jme.scene.Node;
 import com.jmex.physics.DynamicPhysicsNode;
 import com.jmex.physics.PhysicsSpace;
 
-public abstract class Weapon {
-	protected Node node;
+public abstract class Weapon extends Node{
 	
 	public Weapon(PhysicsSpace space) {
 		//node = space.createDynamicNode();
-		node = new Node();
 		
-		node.getLocalTranslation().set(0, .0f, 2.f);
+		getLocalTranslation().set(0, .0f, 2.f);
 	}
 	
 	public abstract boolean fire();
@@ -19,8 +17,5 @@ public abstract class Weapon {
 	public void update(float time) {
 		
 	}
-	
-	public Node getNode() {
-		return node;
-	}
+
 }

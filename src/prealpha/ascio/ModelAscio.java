@@ -3,6 +3,7 @@ package prealpha.ascio;
 import java.io.File;
 import java.io.IOException;
 
+import prealpha.ascio.weapon.Sword;
 import prealpha.input.PAHandler;
 import prealpha.util.Util;
 
@@ -101,7 +102,7 @@ public class ModelAscio extends Ascio  {
 		
 		/* setup the weapon */
 		weapon = new Sword(space);
-		physicsNode.attachChild(weapon.getNode());
+		physicsNode.attachChild(weapon);
 		
 		//Joint j = space.createJoint();
 		//j.attach(node, weapon.getNode());

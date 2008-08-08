@@ -2,6 +2,8 @@ package prealpha.ascio;
 
 import java.io.IOException;
 
+import prealpha.ascio.weapon.Jumper;
+import prealpha.ascio.weapon.Sword;
 import prealpha.input.PAHandler;
 
 import com.jme.bounding.BoundingBox;
@@ -88,8 +90,8 @@ public class BoxAscio extends Ascio  {
 		physicsNode.updateRenderState();
 		
 		/* setup the weapon */
-		weapon = new Sword(space);
-		this.attachChild(weapon.getNode());
+		weapon = new Jumper(space);
+		this.getPhysicsNode().attachChild(weapon);
 	}	
 
 	public void damage(int damage) {
