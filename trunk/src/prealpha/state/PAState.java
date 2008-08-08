@@ -44,13 +44,16 @@ public class PAState extends PhysicsGameState {
 	Timer timer = Timer.getTimer();
 	
 	//system status booleans
-	static boolean physics_debug = false;
-	static boolean first_frame = true;
+	boolean physics_debug = false;
+	boolean first_frame = true;
 	
 	//system stuff
 	Camera cam;
 	PAHandler input;
 	Text[] text;
+	Text newsTicker;
+	StringBuilder news;
+	float newsTime = 0;
 	ThreadGroup builders;
 	
 	/** nodes and collections that contain the elments of the scene */
@@ -210,12 +213,26 @@ public class PAState extends PhysicsGameState {
 	protected void setupText() {
 		textT = new Thread(builders, new Runnable() {
 			public void run() {
+				textNode = new Node();
+				news = new StringBuilder(" THE NEWS ");
+				rootNode.attachChild(textNode);
+				
+				// setup the news ticker
+				newsTicker = Text.createDefaultTextLabel("newsTicker");
+				newsTicker.setLocalTranslation(new Vector3f(0,DisplaySystem.getDisplaySystem().getHeight()-15,0));
+				newsTicker.setRenderQueueMode(Renderer.QUEUE_ORTHO);
+				textNode.attachChild(newsTicker);
+				
+				// setup a lot of text lines for printing all kinds of things/Strings
 				text = new Text[20];
 				for (int i=0; i<text.length; i++) {
 					text[i] = Text.createDefaultTextLabel("text "+i);
 					text[i].setLocalTranslation(new Vector3f(0,(i*12),0));
 					text[i].setRenderQueueMode(Renderer.QUEUE_ORTHO);
-					rootNode.attachChild(text[i]);
+					textNode.attachChild(text[i]);
+				}
+				for (int i=0; i<20; i++) {
+					news.append("012345678910");
 				}
 			}
 		});
@@ -342,7 +359,7 @@ public class PAState extends PhysicsGameState {
 		
 		foes = new ArrayList<Foe>();
 
-		for (int i=0; i < 20; i++) {
+		for (int i=0; i < 10; i++) {
 			vbuff.set(Util.randomInt(200, 50, true), 2, Util.randomInt(200, 50, true));
 			BadBall proto = new BadBall("BadBall "+i, vbuff, getPhysicsSpace());
 			proto.getLocalTranslation().set(Util.randomInt(200, 50, true), 2, Util.randomInt(200, 50, true));
@@ -356,7 +373,7 @@ public class PAState extends PhysicsGameState {
 	protected void setupPlayer() {
 		System.out.println("SETTING UP PLAYER");
 
-		ascio = new BoxAscio("ascio", new Vector3f( 0, 0, 0), this.getPhysicsSpace());
+		ascio = new BoxAscio("ascio", this.getPhysicsSpace());
 		rootNode.attachChild(ascio);
 		//ascio.getNode().setAffectedByGravity(false);
 		
@@ -470,8 +487,7 @@ public class PAState extends PhysicsGameState {
 			System.exit(0);
 		}
 		if(KeyBindingManager.getKeyBindingManager().isValidCommand("reset", false)) {
-			// funky effects happening here, when you let go of F12, ascio snaps back to his old position
-			ascio.getPhysicsNode().getLocalTranslation().set(0,5,0);
+			// funky effects happening here, when you let go of F12, ascio snaps back to his old positions
 			ascio.getPhysicsNode().clearDynamics();
 		}
 		if(KeyBindingManager.getKeyBindingManager().isValidCommand("turnx+", true)) {
@@ -507,16 +523,25 @@ public class PAState extends PhysicsGameState {
 		}
 	}
  	private void updateText() {		
-		text[16].print("Ascio");
-		vbuff = Util.round(ascio.getPhysicsNode().getAngularVelocity(vbuff));
-		text[15].print("Angular Velocity    : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
-		vbuff = Util.round(ascio.getPhysicsNode().getLinearVelocity(vbuff));
-		text[14].print("Linear Velocity     : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
-		vbuff = Util.round(ascio.getPhysicsNode().getForce(vbuff));
-		text[13].print("Force               : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
-		vbuff = Util.round(ascio.getPhysicsNode().getLocalTranslation());
-		text[12].print("Location            : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
-		/*
+ 		if ( physics_debug ) {
+ 			text[8].print("DEBUG MODE");
+ 			ascio.getPhysicsNode().getAngularVelocity(vbuff);
+ 			Util.round( vbuff );
+ 			text[7].print("Angular Velocity    : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
+ 			ascio.getPhysicsNode().getLinearVelocity(vbuff);
+ 			Util.round( vbuff );
+ 			text[6].print("Linear Velocity     : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
+ 			ascio.getPhysicsNode().getForce(vbuff);
+ 			Util.round( vbuff );
+ 			text[5].print("Force               : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
+ 			ascio.getPhysicsNode().getLocalTranslation();
+ 			Util.round( vbuff );
+ 			text[4].print("Physics Location    : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
+ 			ascio.getLocalTranslation();
+ 			Util.round( vbuff );
+ 			text[3].print("Node Location       : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
+ 		}
+ 		/*
 		text[11].print("Rotation Quaternion : X:"+XAR+" Y:"+YAR+" Z:"+ZAR+" W:"+WAR );
 		text[10].print("Rotation Column 0   : X:"+XAc0+" Y:"+YAc0+" Z:"+ZAc0 );
 		text[9].print("Rotation Column 1   : X:"+XAc1+" Y:"+YAc1+" Z:"+ZAc1 );
@@ -530,7 +555,21 @@ public class PAState extends PhysicsGameState {
  		*/
 		text[1].print("HEALTH: " + ascio.getHealth());
 		text[0].print("FPS: " + timer.getFrameRate());
- 	}
+	
+		// take care of the newsTicker
+		if ( (news.length() != 0 && timer.getTimeInSeconds() - newsTime > .75f) ) {
+			news.deleteCharAt(0);
+			newsTime = timer.getTimeInSeconds();
+		}
+		if ( news.length() > 100 ) {
+			newsTime -= .2f;
+		}
+		
+	//	if ( Util.randomInt(1000) > 990 ) news.append(" Random bit of news ");
+		
+		newsTicker.print(news.toString());
+	}
+ 	
  	private void updateFoes(float time) {
 		for ( Foe f : foes ) {
 			f.update(time);
@@ -551,21 +590,21 @@ public class PAState extends PhysicsGameState {
 		}		
 		@Override
 		public void afterStep(PhysicsSpace space, float time) {
+			
 			//resets player when he falls from the floor
-			if (ascio.getLocalTranslation().y < -100  || ascio.getLocalTranslation().y > 1000) {
-				Util.shout("Ascio strayed too far");
+			if (ascio.getPhysicsNode().getLocalTranslation().y < -100  || ascio.getPhysicsNode().getLocalTranslation().y > 1000) {
+				news.append(" " + ascio.getName() +" strayed too far ");
 				ascio.getPhysicsNode().clearDynamics();
 				ascio.getPhysicsNode().getLocalTranslation().set(0,5,0);			
 			}
 			// resets the bad guys when they fall from the floor
 			for ( Foe f : foes ) {
-				if (f.getLocalTranslation().y< -100  || f.getLocalTranslation().y > 1000) {
-					Util.shout("Badball strayed too far");
+				if (f.getPhysicsNode().getLocalTranslation().y< -100  || f.getPhysicsNode().getLocalTranslation().y > 1000) {
+					news.append(" " + f.getName() +" strayed too far ");
 					f.getPhysicsNode().clearDynamics();
 					f.getPhysicsNode().getLocalTranslation().set(Util.randomInt(200, 50, true), 2, Util.randomInt(200, 50, true));				
 				}
 			}
-			input.update(time);
 		}
 	}
 

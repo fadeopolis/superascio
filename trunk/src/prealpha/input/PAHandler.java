@@ -45,8 +45,14 @@ public class PAHandler extends InputHandler {
 	Vector3f left;
 	Vector3f up;
 	Vector3f direction;
+	
+	Vector3f displace = new Vector3f();
+	
 	float turnSpeed = 2f;
 	float moveSpeed = 25;
+	
+	boolean foobar = true;
+	Vector3f oldPos = new Vector3f();
 	
 	AbsoluteMouse mouse;
 	
@@ -110,6 +116,8 @@ public class PAHandler extends InputHandler {
 	public void update(float time) {
 		super.update(time);
 		
+		if ( foobar ) oldPos.set(target.getWorldTranslation());
+		
 		updateCamera(time);
 		updateKeys(time);
 		
@@ -122,34 +130,37 @@ public class PAHandler extends InputHandler {
 		switch (type) {
 		case thirdPerson :
 			//chaser.update(time);
+			//Util.shout(time);
 			
-			vbuff = target.getPhysicsNode().getLocalRotation().getRotationColumn(2).mult(12).add(0,-4,0);
+			
+			vbuff = target.getPhysicsNode().getLocalRotation().getRotationColumn(2).mult(7).add(0,-2,0);
 			location = target.getPhysicsNode().getLocalTranslation().subtract(vbuff);
-			left = target.getPhysicsNode().getLocalRotation().getRotationColumn(0);
+			//left = target.getPhysicsNode().getLocalRotation().getRotationColumn(0);
 			//TODO : don't let the camera sink to far even, if ascio lies on his back
-			up = target.getPhysicsNode().getLocalRotation().getRotationColumn(1);
-			direction = target.getPhysicsNode().getLocalTranslation().subtract(location);
-			cam.setLocation(location);
+			//up = target.getPhysicsNode().getLocalRotation().getRotationColumn(1);
+			//direction = target.getPhysicsNode().getLocalTranslation().subtract(location);
+			cam.setLocation(location.add(displace));
 			cam.lookAt( target.getPhysicsNode().getLocalTranslation(), Vector3f.UNIT_Y);
 			
 			break;
 		case sideScroller :
 			vbuff = target.getPhysicsNode().getLocalRotation().getRotationColumn(0).mult(12);
 			location = target.getPhysicsNode().getLocalTranslation().subtract(vbuff);
-			left = target.getPhysicsNode().getLocalRotation().getRotationColumn(0);
+
+			//left = target.getPhysicsNode().getLocalRotation().getRotationColumn(0);
 			//TODO : don't let the camera sink to far even, if ascio lies on his back
-			up = target.getPhysicsNode().getLocalRotation().getRotationColumn(1);
-			direction = target.getPhysicsNode().getLocalTranslation().subtract(location);
+			//up = target.getPhysicsNode().getLocalRotation().getRotationColumn(1);
+			//direction = target.getPhysicsNode().getLocalTranslation().subtract(location);
 			cam.setLocation(location);
 			cam.lookAt( target.getPhysicsNode().getLocalTranslation(), Vector3f.UNIT_Y);
 			break;
 		case isometric :
-			vbuff = Vector3f.UNIT_Y.mult(-50).add(target.getPhysicsNode().getLocalRotation().getRotationColumn(0).mult(20));
+			vbuff = new Vector3f().add(20, -50, 0);
 			location = target.getPhysicsNode().getLocalTranslation().subtract(vbuff);
-			left = target.getPhysicsNode().getLocalRotation().getRotationColumn(0);
+			//left = target.getPhysicsNode().getLocalRotation().getRotationColumn(0);
 			//TODO : don't let the camera sink to far even, if ascio lies on his back
-			up = target.getPhysicsNode().getLocalRotation().getRotationColumn(1);
-			direction = target.getPhysicsNode().getLocalTranslation().subtract(location);
+			//up = target.getPhysicsNode().getLocalRotation().getRotationColumn(1);
+			//direction = target.getPhysicsNode().getLocalTranslation().subtract(location);
 			cam.setLocation(location);
 			cam.lookAt( target.getPhysicsNode().getLocalTranslation(), Vector3f.UNIT_Y);
 			break;

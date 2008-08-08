@@ -77,7 +77,7 @@ public class foobar {
 			
 			// make a ascio
 			
-			BadBall ascio = new BadBall(phys.getPhysicsSpace());
+			BoxAscio ascio = new BoxAscio(phys.getPhysicsSpace());
 			debug.getRootNode().attachChild(ascio);
 		//	body.addTorque(new Vector3f(0, 1000, 0));
 		//	body.addForce(new Vector3f(500,0,000));
@@ -85,6 +85,8 @@ public class foobar {
 			debug.getRootNode().updateRenderState();
 			
 			GameStateManager.getInstance().activateAllChildren();
+			
+			ascio.attack();
 		}
 	}
 	

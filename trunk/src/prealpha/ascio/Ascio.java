@@ -1,6 +1,7 @@
 package prealpha.ascio;
 
 import prealpha.util.*;
+import prealpha.ascio.weapon.Weapon;
 import prealpha.interfaces.*;
 
 import com.jme.input.InputHandler;
