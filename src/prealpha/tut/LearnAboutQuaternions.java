@@ -20,7 +20,6 @@ import com.jmex.font3d.*;
 import com.jmex.game.*;
 import com.jmex.game.state.*;
 import java.util.logging.Logger;
-import com.jme.image.Texture;
 import com.jme.input.ChaseCamera;
 import com.jme.input.FirstPersonHandler;
 import com.jme.input.InputHandler;
@@ -33,9 +32,9 @@ import com.jme.math.Vector3f;
 import com.jme.renderer.Camera;
 import com.jme.renderer.ColorRGBA;
 import com.jme.scene.Node;
+import com.jme.scene.TexCoords;
 import com.jme.scene.Text;
 import com.jme.scene.TriMesh;
-import com.jme.scene.state.AlphaState;
 import com.jme.scene.state.LightState;
 import com.jme.scene.state.TextureState;
 import com.jme.scene.state.WireframeState;
@@ -137,7 +136,7 @@ public class LearnAboutQuaternions extends BasicGameState{
         ZBufferState zbs = DisplaySystem.getDisplaySystem().getRenderer()
                 .createZBufferState();
         zbs.setEnabled(true);
-        zbs.setFunction(ZBufferState.CF_LEQUAL);
+        zbs.setFunction(ZBufferState.TestFunction.EqualTo);
         rootNode.setRenderState(zbs);
 	}
     private void setupAxes() {   	
@@ -307,10 +306,6 @@ public class LearnAboutQuaternions extends BasicGameState{
 	        input.setActionSpeed(0.3f);
 	        setupKeyBindings();
         }
-
-        // Signal to the renderer that it should keep track of rendering
-        // information.
-        DisplaySystem.getDisplaySystem().getRenderer().enableStatistics(true);
 	}
     private void setupKeyBindings() {
         /** Assign key C to action "camera_out". */
@@ -861,7 +856,7 @@ class Arrow extends TriMesh {
         };
 
         // Feed the information to the TriMesh
-        this.reconstruct(BufferUtils.createFloatBuffer(vertexes), BufferUtils.createFloatBuffer(normals),
-                BufferUtils.createFloatBuffer(colors), BufferUtils.createFloatBuffer(texCoords), BufferUtils.createIntBuffer(indexes));
+      this.reconstruct(BufferUtils.createFloatBuffer(vertexes), BufferUtils.createFloatBuffer(normals),
+                BufferUtils.createFloatBuffer(colors), TexCoords.makeNew(texCoords), BufferUtils.createIntBuffer(indexes));
 }
 }

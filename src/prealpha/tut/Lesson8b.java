@@ -45,7 +45,7 @@ import com.jme.renderer.Renderer;
 import com.jme.scene.Spatial;
 import com.jme.scene.Text;
 import com.jme.scene.shape.Box;
-import com.jme.scene.state.AlphaState;
+import com.jme.scene.state.BlendState;
 import com.jme.scene.state.MaterialState;
 import com.jmex.physics.DynamicPhysicsNode;
 import com.jmex.physics.PhysicsCollisionGeometry;
@@ -118,7 +118,7 @@ public class Lesson8b extends SimplePhysicsGame {
         // finally print a key-binding message
         Text infoText = Text.createDefaultTextLabel( "key info", "[del] and [page down] to move, [insert] and [page up] to rotate" );
         infoText.getLocalTranslation().set( 0, 20, 0 );
-        fpsNode.attachChild( infoText );
+        statNode.attachChild( infoText );
 
         new PhysicsPicker( input, rootNode, getPhysicsSpace(), true ).setPickModeVisual( false );
         MouseInput.get().setCursorVisible( true );
@@ -207,12 +207,12 @@ public class Lesson8b extends SimplePhysicsGame {
         final MaterialState materialState = display.getRenderer().createMaterialState();
         materialState.setDiffuse( color );
         if ( color.a < 1 ) {
-            final AlphaState alphaState = display.getRenderer().createAlphaState();
-            alphaState.setEnabled( true );
-            alphaState.setBlendEnabled( true );
-            alphaState.setSrcFunction( AlphaState.SB_SRC_ALPHA );
-            alphaState.setDstFunction( AlphaState.DB_ONE_MINUS_SRC_ALPHA );
-            spatial.setRenderState( alphaState );
+            final BlendState blendState = display.getRenderer().createBlendState();
+            blendState.setEnabled( true );
+            blendState.setBlendEnabled( true );
+            blendState.setSourceFunction( BlendState.SourceFunction.SourceAlpha );
+            blendState.setDestinationFunction( BlendState.DestinationFunction.OneMinusSourceAlpha );
+            spatial.setRenderState( blendState );
             spatial.setRenderQueueMode( Renderer.QUEUE_TRANSPARENT );
         }
         spatial.setRenderState( materialState );

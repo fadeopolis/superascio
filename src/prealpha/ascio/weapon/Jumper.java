@@ -3,6 +3,7 @@ package prealpha.ascio.weapon;
 import com.jme.math.Vector2f;
 import com.jme.math.Vector3f;
 import com.jme.renderer.ColorRGBA;
+import com.jme.scene.TexCoords;
 import com.jme.scene.TriMesh;
 import com.jme.util.geom.BufferUtils;
 import com.jmex.physics.PhysicsSpace;
@@ -118,6 +119,6 @@ class JumperMesh extends TriMesh {
 
         // Feed the information to the TriMesh
         this.reconstruct(BufferUtils.createFloatBuffer(vertexes), BufferUtils.createFloatBuffer(normals),
-                BufferUtils.createFloatBuffer(colors), BufferUtils.createFloatBuffer(texCoords), BufferUtils.createIntBuffer(indexes));
+                BufferUtils.createFloatBuffer(colors), TexCoords.makeNew(texCoords), BufferUtils.createIntBuffer(indexes));
 }
 }
