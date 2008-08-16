@@ -14,7 +14,7 @@ import com.jme.input.*;
 import com.jme.math.*;
 import com.jme.renderer.*;
 import com.jme.scene.*;
-import com.jme.scene.state.AlphaState;
+import com.jme.scene.state.BlendState;
 import com.jme.scene.state.TextureState;
 import com.jme.system.DisplaySystem;
 import com.jme.util.TextureManager;
@@ -67,15 +67,15 @@ public class PAHandler extends InputHandler {
 		mouse.registerWithInputHandler(this);
 		TextureState cursor = DisplaySystem.getDisplaySystem().getRenderer().createTextureState();
 		cursor.setTexture(TextureManager.loadTexture(
-				TestHardwareMouse.class.getClassLoader().getResource("jmetest/data/cursor/cursor1.png"),
-				Texture.MM_LINEAR, Texture.FM_LINEAR));
+				PAHandler.class.getClassLoader().getResource("jmetest/data/cursor/cursor1.png"),
+				Texture.MinificationFilter.BilinearNearestMipMap, Texture.MagnificationFilter.Bilinear));
 		mouse.setRenderState(cursor);
-		AlphaState as1 = DisplaySystem.getDisplaySystem().getRenderer().createAlphaState();
+		BlendState as1 = DisplaySystem.getDisplaySystem().getRenderer().createBlendState();
 		as1.setBlendEnabled(true);
-		as1.setSrcFunction(AlphaState.SB_SRC_ALPHA);
-		as1.setDstFunction(AlphaState.DB_ONE_MINUS_SRC_ALPHA);
+		as1.setSourceFunction(BlendState.SourceFunction.SourceAlpha);
+		as1.setDestinationFunction(BlendState.DestinationFunction.OneMinusSourceAlpha);
 		as1.setTestEnabled(true);
-		as1.setTestFunction(AlphaState.TF_GREATER);
+		as1.setTestFunction( BlendState.TestFunction.GreaterThan);
 		mouse.setRenderState(as1);
 		
 		Node node = (Node) Util.util().getProp(Util.PropType.RootNode);
