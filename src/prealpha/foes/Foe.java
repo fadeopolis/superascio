@@ -1,9 +1,9 @@
 package prealpha.foes;
 
 import prealpha.ascio.Ascio;
-import prealpha.ascio.CharacterNode;
 import prealpha.interfaces.Destructible;
 import prealpha.interfaces.Updateable;
+import prealpha.physics.DynamicPhysicsNodeWrapper;
 import prealpha.util.Util;
 
 import com.jme.math.Vector3f;
@@ -12,7 +12,7 @@ import com.jmex.physics.DynamicPhysicsNode;
 import com.jmex.physics.PhysicsSpace;
 import com.jmex.physics.PhysicsSpatial;
 
-public abstract class Foe extends CharacterNode implements Destructible, Updateable {
+public abstract class Foe extends DynamicPhysicsNodeWrapper implements Destructible, Updateable {
 	private static final long serialVersionUID = 562913003709690030L;
 	
 	/** the enemy the foes follows/attacks, for now it's always ascio */
@@ -29,7 +29,7 @@ public abstract class Foe extends CharacterNode implements Destructible, Updatea
 	}
 	
 	public Foe( String name, Vector3f location, PhysicsSpace space ) {
-		super(name, location, space);
+		super(name, space.createDynamicNode());
 		
 		health = 100;
 		updateEnabled = false;

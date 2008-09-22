@@ -1,20 +1,31 @@
 package prealpha.ascio.weapon;
 
+import com.jme.bounding.BoundingBox;
 import com.jme.math.Vector2f;
 import com.jme.math.Vector3f;
 import com.jme.renderer.ColorRGBA;
+import com.jme.scene.Controller;
+import com.jme.scene.Node;
+import com.jme.scene.Spatial;
 import com.jme.scene.TexCoords;
 import com.jme.scene.TriMesh;
+import com.jme.scene.shape.Sphere;
 import com.jme.util.geom.BufferUtils;
+import com.jmex.physics.DynamicPhysicsNode;
 import com.jmex.physics.PhysicsSpace;
 
-import prealpha.ascio.weapon.Weapon;;
+import prealpha.ascio.weapon.Weapon;
+import prealpha.util.Util;
 
 public class Jumper extends Weapon {
 	private static final long serialVersionUID = 1893972450201560642L;
 
-	public Jumper(PhysicsSpace space) {
-		super(space);
+	BulletFactory fac;
+	
+	public Jumper( DynamicPhysicsNode phys ) {
+		super( phys.getSpace() );
+		
+		fac = new BulletFactory( phys.getSpace() );
 		
 		JumperMesh mesh1 = new JumperMesh("JumperMesh 1");
 		JumperMesh mesh2 = new JumperMesh("JumperMesh 2");
@@ -29,6 +40,21 @@ public class Jumper extends Weapon {
 	@Override
 	public boolean fire() {
 		// TODO Auto-generated method stub
+		Sphere sp = new Sphere( "bullet", this.getWorldTranslation().add(1.5f, .0f, 0), 10, 10, .5f);
+		sp.setModelBound(new BoundingBox());
+		sp.updateModelBound();
+		
+		DynamicPhysicsNode dpn = fac.createBullet();
+		dpn.attachChild(sp);
+		((Node) Util.util().getProp(Util.PropType.RootNode)).attachChild(dpn);
+		
+		dpn.generatePhysicsGeometry();
+		dpn.addController(new BulletController(dpn));
+		
+		Vector3f buff = new Vector3f();
+		buff = this.getWorldRotation().getRotationColumn(2).mult(10000);
+		dpn.addForce(buff);
+		
 		return false;
 	}
 
@@ -121,4 +147,28 @@ class JumperMesh extends TriMesh {
         this.reconstruct(BufferUtils.createFloatBuffer(vertexes), BufferUtils.createFloatBuffer(normals),
                 BufferUtils.createFloatBuffer(colors), TexCoords.makeNew(texCoords), BufferUtils.createIntBuffer(indexes));
 }
+}
+
+class BulletController extends Controller {
+	public float lifeTime;
+	
+	DynamicPhysicsNode target;
+
+	public BulletController( DynamicPhysicsNode target ) {
+		this.target = target;
+		
+		lifeTime = 5;
+	}
+	
+	@Override
+	public void update(float time) {
+		// TODO Auto-generated method stub
+		lifeTime -= time;
+		
+		if ( lifeTime < 0 )  {
+			target.removeFromParent();
+			target.delete();
+		}
+	}
+
 }

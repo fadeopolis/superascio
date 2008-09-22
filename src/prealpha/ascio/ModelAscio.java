@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import prealpha.ascio.weapon.Sword;
+import prealpha.input.ActionType;
 import prealpha.input.PAHandler;
 import prealpha.util.Util;
 
@@ -42,7 +43,7 @@ public class ModelAscio extends Ascio  {
 	}
 	
 	public ModelAscio( String name, Vector3f location, PhysicsSpace space ) {
-		super(name , location, space);
+		super(name , space.createDynamicNode(), location);
 			
 		/* create visuals for ascio */
 		File file = new File("data/model/ascio.jme");
@@ -55,7 +56,7 @@ public class ModelAscio extends Ascio  {
 			foo.getLocalRotation().fromAngleNormalAxis(90*FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
 			foo.setLocalTranslation(0.2f, -1.5f, 1.25f);
 			model.attachChild(foo);
-			physicsNode.attachChild(model);
+			attachChild(model);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -83,26 +84,26 @@ public class ModelAscio extends Ascio  {
 		*/
 		model.setRenderState(state);
 		
-		physicsNode.setModelBound(new BoundingBox());
-		physicsNode.updateModelBound();
+		setModelBound(new BoundingBox());
+		updateModelBound();
 		
 		/* setup the physics for ascio */
 		//node.setAffectedByGravity(false);
 //		node.generatePhysicsGeometry();	
-		PhysicsBox box = physicsNode.createBox("Ascio Physics");
+		PhysicsBox box = createBox("Ascio Physics");
 		box.getLocalTranslation().set(1, -.2f);
 		box.setLocalScale(new Vector3f(2f, 3.2f, 2.5f));
 		Material m = new Material();
 		m.setDensity(15);
-		physicsNode.setMaterial(Material.PLASTIC);
-		physicsNode.computeMass();
-		physicsNode.setCenterOfMass(new Vector3f(0,-1.5f,0));
+		setMaterial(Material.PLASTIC);
+		computeMass();
+		setCenterOfMass(new Vector3f(0,-1.5f,0));
 
-		physicsNode.updateRenderState();
+		updateRenderState();
 		
 		/* setup the weapon */
 		weapon = new Sword(space);
-		physicsNode.attachChild(weapon);
+		attachChild(weapon);
 		
 		//Joint j = space.createJoint();
 		//j.attach(node, weapon.getNode());
@@ -113,10 +114,10 @@ public class ModelAscio extends Ascio  {
 		
 		if (health < 66) {
 			healthColor = ColorRGBA.yellow;
-			physicsNode.updateRenderState();
+			updateRenderState();
 		} else if (health < 33) {
 			healthColor = ColorRGBA.red;	
-			physicsNode.updateRenderState();
+			updateRenderState();
 		}
 			
 	}
@@ -135,6 +136,12 @@ public class ModelAscio extends Ascio  {
 
 	@Override
 	public void update(float time) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void fire(ActionType action) {
 		// TODO Auto-generated method stub
 		
 	}

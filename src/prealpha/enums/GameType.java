@@ -1,3 +1,7 @@
 package prealpha.enums;
 
-public enum GameType {thirdPerson, sideScroller, isometric};
+import prealpha.interfaces.Updateable;
+
+public enum GameType {
+	thirdPerson, sideScroller, isometric;
+}

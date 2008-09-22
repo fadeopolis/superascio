@@ -34,21 +34,21 @@ public class BadBall extends Foe  {
 		super(name, location, space);
 		
 		Sphere ball = new Sphere("BadBall", 10, 10, 1.5f);
-		physicsNode.attachChild(ball);
-		physicsNode.getLocalTranslation().set(1, 5);
+		attachChild(ball);
+		getLocalTranslation().set(1, 5);
 		
 		MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
 		state.setAmbient(ColorRGBA.red);
 		state.setDiffuse(ColorRGBA.red);
-		physicsNode.setRenderState(state);
+		setRenderState(state);
 		
-		physicsNode.setModelBound(new BoundingBox());
-		physicsNode.updateModelBound();
-		physicsNode.generatePhysicsGeometry();
-		physicsNode.setMaterial(Material.ICE);
-		physicsNode.setMass(5);
+		setModelBound(new BoundingBox());
+		updateModelBound();
+		generatePhysicsGeometry();
+		setMaterial(Material.ICE);
+		setMass(5);
 		
-		physicsNode.updateRenderState();
+		updateRenderState();
 	}
 	
 	/** for now all the game logic of this foe is in here,
@@ -79,8 +79,8 @@ public class BadBall extends Foe  {
 	@Override
 	public void destroy() {
 		// TODO Auto-generated method stub
-		physicsNode.removeFromParent();
-		physicsNode.delete();
+		removeFromParent();
+		delete();
 	}
 
 	@Override
@@ -88,8 +88,8 @@ public class BadBall extends Foe  {
 		// if there is nothing to attack or you already attacked this second, do nothing
 		if ( target == null || Math.abs(timer.getTimeInSeconds() - counter) < 3 ) return false;
 	
-		vbuff = target.getPhysicsNode().getWorldTranslation().subtract(physicsNode.getWorldTranslation()).mult(500);
-		physicsNode.addForce(vbuff);
+		vbuff = target.getPhysicsNode().getWorldTranslation().subtract(getWorldTranslation()).mult(500);
+		addForce(vbuff);
 		
 		//prevents the BadBall from attacking more than once a second
 		counter = timer.getTimeInSeconds();
@@ -101,11 +101,11 @@ public class BadBall extends Foe  {
 	public boolean goTo(Vector3f destination) {
 		// TODO find a cleverer way to do this
 				
-		if ( !Util.nearEqual(destination, physicsNode.getLocalTranslation())) {
-			vbuff = destination.subtract(physicsNode.getWorldTranslation());
+		if ( !Util.nearEqual(destination, getLocalTranslation())) {
+			vbuff = destination.subtract(getWorldTranslation());
 			//buff.set(1, 0);
 			vbuff.mult(vbuff.lengthSquared());
-			physicsNode.addForce(vbuff);
+			addForce(vbuff);
 		}
 		return true;
 	}

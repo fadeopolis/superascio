@@ -2,6 +2,7 @@ package prealpha.input.action;
 
 import prealpha.ascio.Ascio;
 import prealpha.enums.*;
+import prealpha.input.PAHandler;
 
 import com.jme.input.*;
 import com.jme.input.action.*;
@@ -10,8 +11,8 @@ import com.jmex.physics.*;
 
 public class StrafeLeftAction extends MoveAction {
 	
-	public StrafeLeftAction( Ascio target) {
-		super(target);
+	public StrafeLeftAction( PAHandler handler, Ascio target) {
+		super(handler, target);
 	}
 	
 	@Override
@@ -19,10 +20,10 @@ public class StrafeLeftAction extends MoveAction {
 		// TODO Auto-generated method stub
 		switch (type) {
 		case thirdPerson :
-			target.getPhysicsNode().addForce(target.getLeft().mult(strafeSpeed));
+			target.addForce(target.getLeft().mult(strafeSpeed));
 			break;
 		case isometric :
-			target.getPhysicsNode().addForce(target.getLeft().mult(strafeSpeed));
+			target.addForce(target.getLeft().mult(strafeSpeed));
 			break;
 		default :
 			break;
