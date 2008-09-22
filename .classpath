@@ -2,7 +2,8 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/jme 2.0"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/jmephysics 2.0"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/jme"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/jmephysics"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/pcj"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
