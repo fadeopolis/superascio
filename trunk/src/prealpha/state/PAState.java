@@ -1,10 +1,17 @@
 package prealpha.state;
 
 import prealpha.ascio.*;
+import prealpha.curve.CatmullRomCurve;
+import prealpha.curve.Curve;
+import prealpha.curve.CurveWrapper;
+import prealpha.curve.RectifiedCurve;
 import prealpha.foes.BadBall;
 import prealpha.foes.Foe;
 import prealpha.input.*;
 import prealpha.enums.GameType;
+import prealpha.terrain.LevelBlock;
+import prealpha.terrain.TerrainSystem;
+import prealpha.test.InputController;
 import prealpha.util.*;
 import prealpha.util.Util.PropType;
 import prealpha.state.*;
@@ -19,6 +26,8 @@ import com.jme.util.Timer;
 import com.jme.bounding.*;
 import com.jme.input.*;
 import com.jme.input.action.*;
+import com.jme.input.controls.GameControl;
+import com.jme.input.controls.GameControlManager;
 import com.jme.light.*;
 import com.jme.renderer.*;
 import com.jme.scene.state.*;
@@ -26,6 +35,8 @@ import com.jme.scene.*;
 import com.jme.scene.shape.*;
 import com.jme.system.*;
 import com.jme.util.export.binary.BinaryImporter;
+import com.jme.util.geom.BufferUtils;
+import com.jme.util.geom.Debugger;
 import com.jme.math.*;
 import com.jmex.audio.AudioSystem;
 import com.jmex.audio.AudioTrack;
@@ -42,6 +53,7 @@ import com.jmex.physics.util.states.*;
 public class PAState extends PhysicsGameState {
 	static Logger logger = Logger.getLogger("Ascio");
 	Timer timer = Timer.getTimer();
+	float timer2 = 0;
 	
 	//system status booleans
 	boolean physics_debug = false;
@@ -57,20 +69,12 @@ public class PAState extends PhysicsGameState {
 	ThreadGroup builders;
 	
 	/** nodes and collections that contain the elments of the scene */
-	Ascio ascio;
-	StaticPhysicsNode floorNode;
+	public Ascio ascio;
+	Node floorNode;
 	Node doodadNode;
 	Node foeNode;
-	List<Foe> foes;	
 	Node textNode;
-	
-	/** threads that build the scene */
-	Thread soundT;
-	Thread lightT;
-	Thread textT;
-	Thread terrainT;
-	Thread doodadT;
-	Thread foeT;
+	Curve curve;
 	
 	/** sounds */
 	AudioTrack ascioTrack;
@@ -80,48 +84,56 @@ public class PAState extends PhysicsGameState {
 	/** buffer for calculation to prevent object creation */
 	Quaternion qbuff = new Quaternion();
 	Vector3f vbuff = new Vector3f();
+	Vector3f vbuff2 = new Vector3f();
+	Vector3f vbuff3 = new Vector3f();
 	int ibuff = 0;
-	int fbuff = 0;
+	float fbuff = 0;
 	
-	/** not used at the moment */
-	CharacterFactory factory;
+	float progress;
+	float limit;
+	boolean cycle;
+	Node tracer;
 	
-	public PAState( String name ) {
+	public PAState( String name ) throws InterruptedException, IOException {
 		super(name);
 		//space = (PhysicsSpace) Util.util().getProp(PropType.PhysicsSpace);
 		//space = Util.util().space;
 		//space = PhysicsSpace.create();
-		factory = new CharacterFactory(this.getPhysicsSpace(), rootNode);
-		//build();
 		Util.util().putProp(rootNode);
+		
+		build();
 	}
 	/**
 	 * Convenience method for building the state
 	 * @throws InterruptedException
+	 * @throws IOException 
 	 */
-	public void build() throws InterruptedException {
-		System.out.println("LET'S GET IT ON!");
-	
-		builders = new ThreadGroup("builders");
-		
+	public void build() throws InterruptedException, IOException {
+		System.out.println("LET'S GET IT ON!");	
 
+		progress = 0;
+		cycle = true;
+		
 		setupCamera();
-		setupSound();
+		//setupSound();
 		setupLight();
 		setupText();
 		setupTerrain();
-		setupDoodads();
-		setupFoes();
+		//setupDoodads();
+		//setupFoes();
 		//foes = new ArrayList<Foe>();
 		setupPlayer();
 		
 		// wait for the building threads to finish before continuing
+		/*
 		lightT.join();
 		textT.join();
 		doodadT.join();
 		terrainT.join();
 		soundT.join();
+		*/
 		
+		rootNode.addController(new InputController(ascio));
 			
 		setupInput();
 		setupPhysics();
@@ -132,223 +144,146 @@ public class PAState extends PhysicsGameState {
 	
 	/** 
 	 * methods that build seperate parts of the scene, these do not require each other
-	 * and can be commented out for debugging in build without problems */
+	 * and can be commented out for debugging in the build method without problems */
 	protected void setupCamera() {
 		System.out.println("SETTING UP CAMERA");
 		
-		cam = DisplaySystem.getDisplaySystem().getRenderer().getCamera();
+		cam = DisplaySystem.getDisplaySystem().getRenderer().getCamera();		
 		
 		System.out.println("CAMERA SET UP");
 	}
 	protected void setupSound() {   
 		/** Set the 'ears' for the sound API */
-		soundT = new Thread(builders, new Runnable() {
-			public void run () {
-				System.out.println("SETTING UP SOUND");
-				
-				// TODO Auto-generated method stub
-		        AudioSystem audio = AudioSystem.getSystem();
-		        //oh it took me some time to find out what caused the 
-		        //funky sound when moving, but this fixes it
-				audio.setDopplerFactor(.001f);
+		System.out.println("SETTING UP SOUND");
+		
+		// TODO Auto-generated method stub
+        AudioSystem audio = AudioSystem.getSystem();
+        //oh it took me some time to find out what caused the 
+        //funky sound when moving, but this fixes it
+		audio.setDopplerFactor(.001f);
 
-		        /** Create program sound */
-		        try {
-					ascioTrack = audio.createAudioTrack(new File("/home/fader/workspace/ascio/data/sound/fabb-Ascc2.ogg").toURI().toURL(), false);
-					ascioTrack.setType(AudioTrack.TrackType.ENVIRONMENT);
-					ascioTrack.setMaxAudibleDistance(1000);
-			        ascioTrack.setVolume(1f);
-		        } catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-		        targetSound = audio.createAudioTrack( getClass().getResource( "/jmetest/data/sound/explosion.ogg" ), false);
-		        targetSound.setMaxAudibleDistance(1000);
-		        targetSound.setVolume(1.0f);
-				laserSound = audio.createAudioTrack( getClass().getResource( "/jmetest/data/sound/laser.ogg" ), false);
-		        laserSound.setMaxAudibleDistance(1000);
-		        laserSound.setVolume(1.0f);
-		        
-		        ascioTrack.setRelative(false);
-		        System.out.println("SOUND SET UP");
-			}
-		});
-		soundT.start();		
+        /** Create program sound */
+        try {
+			ascioTrack = audio.createAudioTrack(new File("/home/fader/workspace/ascio/data/sound/fabb-Ascc2.ogg").toURI().toURL(), false);
+			ascioTrack.setType(AudioTrack.TrackType.ENVIRONMENT);
+			ascioTrack.setMaxAudibleDistance(1000);
+	        ascioTrack.setVolume(1f);
+        } catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+        targetSound = audio.createAudioTrack( getClass().getResource( "/jmetest/data/sound/explosion.ogg" ), false);
+        targetSound.setMaxAudibleDistance(1000);
+        targetSound.setVolume(1.0f);
+		laserSound = audio.createAudioTrack( getClass().getResource( "/jmetest/data/sound/laser.ogg" ), false);
+        laserSound.setMaxAudibleDistance(1000);
+        laserSound.setVolume(1.0f);
+        
+        ascioTrack.setRelative(false);
+        System.out.println("SOUND SET UP");			
 	}
 	protected void setupLight() {		
-		lightT =new Thread(builders, new Runnable() {
+		System.out.println("SETTING UP LIGHT");
+		// TODO Auto-generated method stub
+		
+		LightState lightState = DisplaySystem.getDisplaySystem().getRenderer().createLightState();
+		lightState.setEnabled(true);
+		
+		PointLight light = new PointLight();
+        light.setDiffuse( new ColorRGBA( 0.75f, 0.75f, 0.75f, 0.75f ) );
+        light.setAmbient( new ColorRGBA( 0.95f, 0.75f, 0.95f, .75f ) );
+        light.setLocation( new Vector3f( 100, 100, 100 ) );
+        light.setEnabled( true );
 
-			@Override
-			public void run() {
-				System.out.println("SETTING UP LIGHT");
-				// TODO Auto-generated method stub
-				
-				LightState lightState = (LightState) rootNode.getRenderState(RenderState.RS_LIGHT);
-				if (lightState == null) {
-					lightState = DisplaySystem.getDisplaySystem().getRenderer().createLightState();
-					lightState.setEnabled(true);
+        DirectionalLight sun = new DirectionalLight();	
+		sun.setDiffuse( new ColorRGBA(.9f,.9f,.9f,1f) );
+		sun.setAmbient( new ColorRGBA(.9f,.9f,.9f,1f));
+		sun.setEnabled(true);
+		lightState.attach(sun);
 					
-			        PointLight light = new PointLight();
-			        light.setDiffuse( ColorRGBA.lightGray );
-			        light.setAmbient(ColorRGBA.white);
-			        light.setLocation( new Vector3f( 100, 100, 100 ) );
-			        light.setEnabled( true );
-			        lightState.attach(light);
-			        
-				}
-				DirectionalLight sun = new DirectionalLight();	
-				sun.setDiffuse( ColorRGBA.lightGray );
-				sun.setAmbient(ColorRGBA.white);
-				sun.setEnabled(true);
-				lightState.attach(sun);
-						
-				rootNode.setRenderState(lightState);
-				
-				System.out.println("LIGHT SET UP");
-			}
-		});
-		lightT.start();
+		rootNode.setRenderState(lightState);
+		
+		System.out.println("LIGHT SET UP");
 	}
 	protected void setupText() {
-		textT = new Thread(builders, new Runnable() {
-			public void run() {
-				textNode = new Node();
-				news = new StringBuilder(" THE NEWS ");
-				rootNode.attachChild(textNode);
-				
-				// setup the news ticker
-				newsTicker = Text.createDefaultTextLabel("newsTicker");
-				newsTicker.setLocalTranslation(new Vector3f(0,DisplaySystem.getDisplaySystem().getHeight()-15,0));
-				newsTicker.setRenderQueueMode(Renderer.QUEUE_ORTHO);
-				textNode.attachChild(newsTicker);
-				
-				// setup a lot of text lines for printing all kinds of things/Strings
-				text = new Text[20];
-				for (int i=0; i<text.length; i++) {
-					text[i] = Text.createDefaultTextLabel("text "+i);
-					text[i].setLocalTranslation(new Vector3f(0,(i*12),0));
-					text[i].setRenderQueueMode(Renderer.QUEUE_ORTHO);
-					textNode.attachChild(text[i]);
-				}
-				for (int i=0; i<20; i++) {
-					news.append("012345678910");
-				}
-			}
-		});
-		textT.start();		
+		textNode = new Node();
+		news = new StringBuilder(" THE NEWS ");
+		rootNode.attachChild(textNode);
+		
+		// setup the news ticker
+		newsTicker = Text.createDefaultTextLabel("newsTicker");
+		newsTicker.setLocalTranslation(new Vector3f(0,DisplaySystem.getDisplaySystem().getHeight()-15,0));
+		newsTicker.setRenderQueueMode(Renderer.QUEUE_ORTHO);
+		textNode.attachChild(newsTicker);
+		
+		// setup a lot of text lines for printing all kinds of things/Strings
+		text = new Text[20];
+		for (int i=0; i<text.length; i++) {
+			text[i] = Text.createDefaultTextLabel("text "+i);
+			text[i].setLocalTranslation(new Vector3f(0,(i*12),0));
+			text[i].setRenderQueueMode(Renderer.QUEUE_ORTHO);
+			textNode.attachChild(text[i]);
+		}
+		for (int i=0; i<20; i++) {
+			news.append("012345678910");
+		}		
 	}
-	protected void setupTerrain() {
-		terrainT = new Thread(builders, new Runnable() {
-			@Override
-			public void run() {
-				System.out.println("SETTING UP TERRAIN");
-				// TODO Auto-generated method stub
+	protected void setupTerrain() throws IOException {
+		System.out.println("SETTING UP TERRAIN");
+		// TODO Auto-generated method stub
+		floorNode = new Node();
+		floorNode.setName("Floor Node");
+		rootNode.attachChild(floorNode);
+		//the floor
+		
+		TerrainSystem.create(getPhysicsSpace());
+		floorNode.attachChild(TerrainSystem.terrainRoot);
+		//TerrainSystem.getSystem().get(0, 0, 0);
 
-				//visuals for the floor
-				Box floorVis = new Box("floorVis", new Vector3f(0,-2,0),500,.5f,500);
-				floorVis.setModelBound(new BoundingBox());
-				floorVis.updateModelBound();
-				
-				//pillars in the 4 directions, for orientation
-				Box northernPillar = new Box("northernPillar", new Vector3f(500, 500, 0), 5f, 500, 5);
-				northernPillar.setModelBound(new BoundingBox());
-				northernPillar.updateModelBound();
-				MaterialState northernState = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-				northernState.setAmbient(ColorRGBA.black);
-				northernPillar.setRenderState(northernState);
-				
-				Box southernPillar = new Box("southernPillar", new Vector3f(-500, 500, 0), 5f, 500, 5);
-				southernPillar.setModelBound(new BoundingBox());
-				southernPillar.updateModelBound();
-				MaterialState southernState = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-				southernState.setAmbient(ColorRGBA.black);
-				southernPillar.setRenderState(southernState);
-				
-				Box easternPillar = new Box("easternPillar", new Vector3f(0, 500, 500), 5, 500, 5f);
-				easternPillar.setModelBound(new BoundingBox());
-				easternPillar.updateModelBound();
-				MaterialState easternState = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-				easternState.setAmbient(ColorRGBA.black);
-				easternPillar.setRenderState(easternState);
-				
-				Box westernPillar = new Box("westernPillar", new Vector3f(0, 500, -500), 5,500, 5f);
-				westernPillar.setModelBound(new BoundingBox());
-				westernPillar.updateModelBound();
-				MaterialState westernState = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-				westernState.setAmbient(ColorRGBA.black);
-				westernPillar.setRenderState(westernState);
-				
-				// boxes, just lying around for fun
-				Box[] boxes = new Box[100];
-				for (int i=0; i < boxes.length; i++) {
-					vbuff.set(Util.randomInt(450, true)+20, Util.randomInt(3, false), Util.randomInt(450, true)+20);
-					if ( vbuff.x > -20 && vbuff.x < 20 ) vbuff.set(0, 40);
-					if ( vbuff.z > -20 && vbuff.z < 20 ) vbuff.set(2, 40);
-					
-					boxes[i] = new Box("Box "+i, vbuff, Util.randomInt(10, false)+1, Util.randomInt(10, false)+1, Util.randomInt(10, false)+1);
-					MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-					state.setDiffuse(ColorRGBA.randomColor());
-					boxes[i].setRenderState(state);
-				}
-				
-				//Physics
-				floorNode = getPhysicsSpace().createStaticNode();
-				
-				floorNode.attachChild(floorVis);
-				floorNode.attachChild(northernPillar);
-				floorNode.attachChild(southernPillar);
-				floorNode.attachChild(easternPillar);
-				floorNode.attachChild(westernPillar);
-				for (int i=0; i<boxes.length;i++) floorNode.attachChild(boxes[i]);
-				
-				floorNode.generatePhysicsGeometry();
-				
-				rootNode.attachChild(floorNode);
-				rootNode.updateRenderState();
-				
-				System.out.println("TERRAIN SET UP");
-			}
-		});
-		terrainT.start();
+		
+		for ( int i = 0; i < 10; i++) {
+			TerrainSystem.getSystem().get(i, 0, 0);
+		}	
+		
+		for ( int i = 1; i < 10; i++) {
+			TerrainSystem.getSystem().get(i-1, 0, 0).link(TerrainSystem.getSystem().get(i, 0, 0));
+		}
+		
+		curve = TerrainSystem.getSystem().get(0, 0, 0).getCurve(0);	
+		    
+		System.out.println("TERRAIN SET UP");
 	}
 	protected void setupDoodads() {
-		doodadT = new Thread(builders, new Runnable() {
-			@Override
-			public void run() {
-				System.out.println("SETTING UP DOODADS");
-				// TODO Auto-generated method stub
-				
-				
-				doodadNode = new Node("Doodads");
+		System.out.println("SETTING UP DOODADS");
+		// TODO Auto-generated method stub
+		
+		doodadNode = new Node("Doodads");
 
-				//a sphere for ascio to play with
-				Sphere sphereVis = new Sphere("sphere", 30,30,3);
-				Cylinder sphereAxis = new Cylinder("sphereAxis", 30, 30, 1, 5.8f,true);
-				
-				MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
-				state.setDiffuse(ColorRGBA.blue);
-				state.setAmbient(ColorRGBA.green);
-				
-				DynamicPhysicsNode sphere = getPhysicsSpace().createDynamicNode();
-				sphere.setLocalTranslation(5,10,20);
-				sphere.setName("Doodad : Sphere");
-				sphere.setRenderState(state);
-				sphere.attachChild(sphereVis);
-				sphere.attachChild(sphereAxis);
-				sphere.setModelBound(new BoundingSphere());
-				sphere.updateModelBound();
-				sphere.generatePhysicsGeometry();
-				sphere.setMass(5);			
-				sphere.getLocalRotation().fromAngleAxis(90*FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
-				
-				doodadNode.attachChild(sphere);
-				rootNode.attachChild(doodadNode);
-				
-				System.out.println("DOODADS SET UP");
-			}
-		});
-		doodadT.start();
+		//a sphere for ascio to play with
+		Sphere sphereVis = new Sphere("sphere", 30,30,3);
+		Cylinder sphereAxis = new Cylinder("sphereAxis", 30, 30, 1, 5.8f,true);
+		
+		MaterialState state = DisplaySystem.getDisplaySystem().getRenderer().createMaterialState();
+		state.setDiffuse(ColorRGBA.blue);
+		state.setAmbient(ColorRGBA.green);
+		
+		DynamicPhysicsNode sphere = getPhysicsSpace().createDynamicNode();
+		sphere.setLocalTranslation(5,10,20);
+		sphere.setName("Doodad : Sphere");
+		sphere.setRenderState(state);
+		sphere.attachChild(sphereVis);
+		sphere.attachChild(sphereAxis);
+		sphere.setModelBound(new BoundingSphere());
+		sphere.updateModelBound();
+		sphere.generatePhysicsGeometry();
+		sphere.setMass(5);			
+		sphere.getLocalRotation().fromAngleAxis(90*FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
+		
+		doodadNode.attachChild(sphere);
+		rootNode.attachChild(doodadNode);
+		
+		System.out.println("DOODADS SET UP");
 	}
 	protected void setupFoes() {
 		// TODO Auto-generated method stub
@@ -356,8 +291,6 @@ public class PAState extends PhysicsGameState {
 		
 		foeNode = new Node("FoeNode");
 		rootNode.attachChild(foeNode);
-		
-		foes = new ArrayList<Foe>();
 
 		for (int i=0; i < 10; i++) {
 			vbuff.set(Util.randomInt(200, 50, true), 2, Util.randomInt(200, 50, true));
@@ -365,7 +298,6 @@ public class PAState extends PhysicsGameState {
 			proto.getLocalTranslation().set(Util.randomInt(200, 50, true), 2, Util.randomInt(200, 50, true));
 			Util.shout("I'm at " + proto.getLocalTranslation());
 			foeNode.attachChild(proto);
-			foes.add(proto);
 		}
 		
 		System.out.println("FOES SET UP");
@@ -373,9 +305,33 @@ public class PAState extends PhysicsGameState {
 	protected void setupPlayer() {
 		System.out.println("SETTING UP PLAYER");
 
-		ascio = new BoxAscio("ascio", this.getPhysicsSpace());
-		rootNode.attachChild(ascio);
-		//ascio.getNode().setAffectedByGravity(false);
+		ascio = new BoxAscio("ascio", this.getPhysicsSpace().createDynamicNode() );
+		
+		((Geometry)ascio.getPhysicsNode().getChild(0)).setRandomColors();
+		
+		//rootNode.attachChild(new Box("", new Vector3f(0, -3, 0),.1f, 0.1f, 0.1f));
+		//setupTerrain();
+		
+//		ascio.setLocalTranslation(curve.getPoint(.01f));
+		ascio.setLocalTranslation(-47, 5, 0);
+		ascio.getLocalRotation().fromAngleAxis(90*FastMath.DEG_TO_RAD,Vector3f.UNIT_Y);
+		//ascio.clearDynamics();
+		//ascio.setLocalTranslation(Vector3f.UNIT_Y.mult(2));
+		//ascio.getPhysicsNode().setLocalTranslation(Vector3f.UNIT_Y.mult(2));
+		
+		rootNode.attachChild(ascio);	
+		
+		CameraNode camNode = new CameraNode("camNode", cam);
+		camNode.getLocalTranslation().addLocal(0, 1, 15);
+		camNode.lookAt( new Vector3f(-47,0,0), Vector3f.UNIT_Y);
+		cam.setDirection(cam.getLocation().subtract(ascio.getWorldTranslation()));
+		cam.update();
+//		camNode.lookAt(ascio.getWorldTranslation(), Vector3f.UNIT_Y);
+	//	cam.lookAt(ascio.getWorldTranslation(), Vector3f.UNIT_Y);
+	//	camNode.getLocalRotation().fromAngleAxis(270*FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
+		
+		ascio.attachChild(camNode);
+		//ascio.getPhysicsNode().setAffectedByGravity(false);
 		
 		Util.util().putProp(ascio);
 		
@@ -388,8 +344,10 @@ public class PAState extends PhysicsGameState {
 	protected void setupInput() {
 		System.out.println("SETTING UP INPUT");
 		
-		input = new PAHandler(ascio, cam);
-		input.setGameType(prealpha.enums.GameType.thirdPerson);
+		//input = new PAHandler(ascio, cam);
+		//input.setGameType(PAHandler.GameType.sideScroller);
+//		input.setGameType(prealpha.enums.GameType.thirdPerson);
+		//input.setCurve(curve);
 		
 		KeyBindingManager.getKeyBindingManager().add("exit", KeyInput.KEY_ESCAPE);
 		KeyBindingManager.getKeyBindingManager().add("physics_debug", KeyInput.KEY_P);
@@ -429,6 +387,27 @@ public class PAState extends PhysicsGameState {
 					pbuff = (DynamicPhysicsNode) a;
 					pbuff.addForce(Vector3f.UNIT_Y.mult(1000));
 				}
+				
+				if ( a == ascio.getPhysicsNode() && b.hasAncestor(floorNode)) {
+					contact.getContactPosition(vbuff);
+					//System.out.print(vbuff+"\t");
+					vbuff = ascio.getWorldTranslation();
+					//System.out.print(vbuff+"\t");
+					vbuff = ascio.getLocalTranslation();
+					//System.out.println(vbuff+"\t");
+					ascio.addForce(Vector3f.UNIT_Y.mult(ascio.getMass()*50));
+				} else if ( b == ascio.getPhysicsNode() && a.hasAncestor(floorNode)) {
+					contact.getContactPosition(vbuff);
+					//System.out.print(vbuff+"\t");
+					vbuff = ascio.getWorldTranslation();
+					//System.out.print(vbuff+"\t");
+					vbuff = ascio.getLocalTranslation();
+					//System.out.println(vbuff+"\t");
+				}
+				
+				//System.out.println(a.getName()+"\t"+b.getName());
+				//System.out.println(a.getClass()+"\t"+b.getClass());
+				
 				return false;
 			}			
 		};
@@ -437,8 +416,9 @@ public class PAState extends PhysicsGameState {
 		friction.add((DynamicPhysicsNode) ascio.getPhysicsNode(), .5f, .5f);
 //		friction.add((DynamicPhysicsNode) doodadNode.getChild(0), .5f, .5f);
 		this.getPhysicsSpace().addToUpdateCallbacks(friction);
+		
 		this.getPhysicsSpace().addToUpdateCallbacks(new Callback());
-		//this.getPhysicsSpace().getContactCallbacks().add(contact);
+		this.getPhysicsSpace().getContactCallbacks().add(contact);
 		
 		this.getPhysicsSpace().setDirectionalGravity(vbuff.set(0, -9.81f, 0));
 		//this.getPhysicsSpace().setDirectionalGravity(vbuff.set(0, 0, 0));
@@ -447,16 +427,8 @@ public class PAState extends PhysicsGameState {
 	}
 	protected void finalTouch() {
 		System.out.println("GIVING IT THE FINAL TOUCH");
-		
-		// set ascio as target for the foes
-		for ( Foe f : foes ) {
-			f.setTarget(ascio);
-		}
-		
-		ascio.getPhysicsNode().addForce(Vector3f.UNIT_Y.mult(50));
-		
+				
 		// TODO Auto-generated method stub
-		rootNode.updateGeometricState(0, true);
 		rootNode.updateRenderState();
 		
 		System.out.println("FINAL TOUCH GIVEN");
@@ -465,11 +437,17 @@ public class PAState extends PhysicsGameState {
 	@Override
 	public void update(float time) {
 		super.update(time);
-				
-		input.update(time);
+
+		InputManager.get().update(time);
+		
+		timer2 += time;
+		
+//		input.update(time);
+		
+//		System.out.println(curve.getLength());
 		
 		updateKeys();		
-		updateText();
+		//updateText();
 		updateFoes(time);
 		
         if ( first_frame )
@@ -478,6 +456,21 @@ public class PAState extends PhysicsGameState {
             // to avoid a rushing simulation we reset the timer
             timer.reset();
             first_frame = false;
+        }              
+//        progress2 = curve.checkProgress( ascio.getPhysicsNode().getLocalTranslation());
+        
+        //if ( ascio.hasCollision(floorNode, false)) ascio.mp.setAllValues(true);		
+		//else ascio.mp.setAllValues(false);
+        
+        if ( !ascio.hasCollision(floorNode, false)) timer2 += time; else timer2 = 0;
+        
+        if ( timer2 >= 10f ) {
+
+        		ascio.setLocalTranslation(0, 3, 0);
+        		ascio.getLocalRotation().fromAngleAxis(90*FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
+        		ascio.clearDynamics();
+     
+        	timer2 = 0;
         }
 	}
 
@@ -488,36 +481,71 @@ public class PAState extends PhysicsGameState {
 		}
 		if(KeyBindingManager.getKeyBindingManager().isValidCommand("reset", false)) {
 			// funky effects happening here, when you let go of F12, ascio snaps back to his old positions
-			ascio.getPhysicsNode().clearDynamics();
+			ascio.clearDynamics();
 		}
 		if(KeyBindingManager.getKeyBindingManager().isValidCommand("turnx+", true)) {
-			ascio.getPhysicsNode().addTorque(Vector3f.UNIT_X.mult(90));
+			//ascio.getPhysicsNode().addTorque(Vector3f.UNIT_X.mult(90));
+			if ( curve.hasCollision(ascio.getPhysicsNode())) {
+	//			progress += .25f;
+	//			ascio.addForce( curve.getPointByLength(progress2+1).subtract(ascio.getLocalTranslation()).mult(150), Vector3f.UNIT_Z.divide(3));
+				//((DynamicPhysicsNode) ascio.getPhysicsNode()).addForce(new Vector3f(0, 5000, 0));
+				//ascio.clearForce();
+				//System.out.println(ascio.getClass());
+				//System.out.println(ascio.getPhysicsNode().getClass());
+				//ascio.clearTorque();
+        	}	
 		}
-		if(KeyBindingManager.getKeyBindingManager().isValidCommand("turnx-")) {
-			ascio.getPhysicsNode().addTorque(Vector3f.UNIT_X.mult(-90));
+		if(KeyBindingManager.getKeyBindingManager().isValidCommand("turnx-", true)) {
+			//ascio.getPhysicsNode().addTorque(Vector3f.UNIT_X.mult(-90));
+			if ( curve.hasCollision(ascio.getPhysicsNode())) {
+		//		progress -= .25f;
+		//		//ascio.setLocalTranslation(curve.getPointByLength(progress));
+		//		ascio.addForce( curve.getPointByLength(progress2-1).subtract(ascio.getLocalTranslation()).mult(150), Vector3f.UNIT_Z.divide(3));
+				//ascio.clearForce(); 
+				//ascio.clearTorque();
+			}	
 		}
-		if(KeyBindingManager.getKeyBindingManager().isValidCommand("turny+")) {
-			ascio.getPhysicsNode().addTorque(Vector3f.UNIT_Y.mult(90));
+		if(KeyBindingManager.getKeyBindingManager().isValidCommand("turny+", false)) {
+			//ascio.getPhysicsNode().addTorque(Vector3f.UNIT_Y.mult(90));
+			ascio.attack();
 		}
-		if(KeyBindingManager.getKeyBindingManager().isValidCommand("turny-")) {
-			ascio.getPhysicsNode().addTorque(Vector3f.UNIT_Y.mult(-90));
+		if(KeyBindingManager.getKeyBindingManager().isValidCommand("turny-", false)) {
+			//ascio.getPhysicsNode().addTorque(Vector3f.UNIT_Y.mult(-90));
+			DynamicPhysicsNode dpn = this.getPhysicsSpace().createDynamicNode();
+			rootNode.attachChild(dpn);
+			dpn.setLocalTranslation(0, 3, -10);
+			
+			dpn.setIsCollidable(false);
+			
+			dpn.attachChild(new Box("", new Vector3f(), 1,1,5));
+			dpn.generatePhysicsGeometry();
+			dpn.setMass(10000000);
+			dpn.setAffectedByGravity(false);
+			dpn.clearDynamics();
+			vbuff.set(0,0, 100000000000f);
+			
+			dpn.addForce(vbuff);
 		}
 		if(KeyBindingManager.getKeyBindingManager().isValidCommand("turnz+")) {
-			ascio.getPhysicsNode().addTorque(Vector3f.UNIT_Z.mult(90));
+			vbuff.set(0, 150, 0);
+			ascio.addTorque(vbuff);
+			System.out.println("PLUS");
 		}
 		if(KeyBindingManager.getKeyBindingManager().isValidCommand("turnz-")) {
-			ascio.getPhysicsNode().addTorque(Vector3f.UNIT_Z.mult(-90));
+			vbuff.set(0, -150, 0);
+			ascio.addTorque(vbuff);
+			System.out.println("MINUS");
 		}
 		if(KeyBindingManager.getKeyBindingManager().isValidCommand("funky")) {
 			vbuff.set(1, -999999);
-			ascio.getPhysicsNode().setLinearVelocity(vbuff);
+			ascio.setLinearVelocity(vbuff);
 		}
 		if(KeyBindingManager.getKeyBindingManager().isValidCommand("physics_debug", false)) {
 			physics_debug = !physics_debug;
 		}
 		if(KeyBindingManager.getKeyBindingManager().isValidCommand("music", false)) {
 			try {
-				if (ascioTrack.isPlaying()) ascioTrack.stop(); else ascioTrack.play();
+//				if (ascioTrack.isPlaying()) ascioTrack.stop(); else ascioTrack.play();
 			} finally {			
 			}
 		}
@@ -525,13 +553,13 @@ public class PAState extends PhysicsGameState {
  	private void updateText() {		
  		if ( physics_debug ) {
  			text[8].print("DEBUG MODE");
- 			ascio.getPhysicsNode().getAngularVelocity(vbuff);
+ 			ascio.getAngularVelocity(vbuff);
  			Util.round( vbuff );
  			text[7].print("Angular Velocity    : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
- 			ascio.getPhysicsNode().getLinearVelocity(vbuff);
+ 			ascio.getLinearVelocity(vbuff);
  			Util.round( vbuff );
  			text[6].print("Linear Velocity     : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
- 			ascio.getPhysicsNode().getForce(vbuff);
+ 			ascio.getForce(vbuff);
  			Util.round( vbuff );
  			text[5].print("Force               : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
  			ascio.getPhysicsNode().getLocalTranslation();
@@ -569,44 +597,42 @@ public class PAState extends PhysicsGameState {
 		
 		newsTicker.print(news.toString());
 	}
- 	
  	private void updateFoes(float time) {
-		for ( Foe f : foes ) {
-			f.update(time);
-		}
  	}
 	
  	@Override
 	public void render(float time) {
 		super.render(time);
 		
-		if (physics_debug) PhysicsDebugger.drawPhysics(getPhysicsSpace(), DisplaySystem.getDisplaySystem().getRenderer());
+		if (physics_debug) {
+			PhysicsDebugger.drawPhysics(getPhysicsSpace(), DisplaySystem.getDisplaySystem().getRenderer());
+			Debugger.drawBounds(rootNode, DisplaySystem.getDisplaySystem().getRenderer(), true);
+		}
 	}
  	
  	private class Callback implements PhysicsUpdateCallback {
 		@Override
 		public void beforeStep(PhysicsSpace space, float time) {
 			// TODO Auto-generated method stub
+			//ascio.clearTorque();
 		}		
 		@Override
 		public void afterStep(PhysicsSpace space, float time) {
-			
-			//resets player when he falls from the floor
-			if (ascio.getPhysicsNode().getLocalTranslation().y < -100  || ascio.getPhysicsNode().getLocalTranslation().y > 1000) {
-				news.append(" " + ascio.getName() +" strayed too far ");
-				ascio.getPhysicsNode().clearDynamics();
-				ascio.getPhysicsNode().getLocalTranslation().set(0,5,0);			
+		//	ascio.limitForces();
+//			space.collide(ascio, ascio);
+			if ( ascio.hasCollision(floorNode, false)) {
+				ascio.mp.setAllValues(true);		
 			}
-			// resets the bad guys when they fall from the floor
-			for ( Foe f : foes ) {
-				if (f.getPhysicsNode().getLocalTranslation().y< -100  || f.getPhysicsNode().getLocalTranslation().y > 1000) {
-					news.append(" " + f.getName() +" strayed too far ");
-					f.getPhysicsNode().clearDynamics();
-					f.getPhysicsNode().getLocalTranslation().set(Util.randomInt(200, 50, true), 2, Util.randomInt(200, 50, true));				
-				}
-			}
+			else ascio.mp.setAllValues(false);
+			vbuff = ascio.getLocalTranslation();
+ 			Util.round( vbuff );
+ 			text[4].print("Location    : X:"+ vbuff.x +" Y:"+ vbuff.y +" Z:"+ vbuff.z );
+ 			vbuff = cam.getLocation();
+ 			Util.round( vbuff );
+ 			text[5].print("Cam             "+ vbuff);
+ 			ascio.getLocalRotation().fromAngleAxis(90*FastMath.DEG_TO_RAD, Vector3f.UNIT_Y);
+ 			
+ 			
 		}
 	}
-
-
 }

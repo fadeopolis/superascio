@@ -6,6 +6,7 @@ import java.util.Random;
 
 import prealpha.ascio.Ascio;
 
+import com.jme.math.FastMath;
 import com.jme.math.Vector3f;
 import com.jme.renderer.Camera;
 import com.jme.renderer.Renderer;
@@ -142,14 +143,45 @@ public class Util {
     		return rand.nextInt(range);
     	}
     }
-
-    
+ 
     public static int randomInt ( int rangeMax, int rangeMin, boolean negativePossible) {
     	if (negativePossible) {
     		return rand.nextBoolean() ? (rand.nextInt()+rangeMin)%rangeMax : ((rand.nextInt()+rangeMin)%rangeMax)*-1;
     	} else {
     		return (rand.nextInt()+rangeMin)%rangeMax;
     	}
+    }
+    
+    public static float randomFloat ( float range) {
+    	return rand.nextFloat()*range;
+    }
+    
+    public static float randomFloat ( float range, boolean negativePossible) {
+    	if (negativePossible) {
+    		return rand.nextBoolean() ? rand.nextFloat()*range : rand.nextFloat()*-range;
+    	} else {
+    		return rand.nextFloat()*range;
+    	}
+    }
+ 
+    public static float randomFloat ( float rangeMax, float rangeMin, boolean negativePossible) {
+    	if (negativePossible) {
+    		return rand.nextBoolean() ? (rand.nextFloat()*rangeMax + rangeMin)%(rangeMax + Float.MIN_VALUE) : ((rand.nextFloat()*rangeMax + rangeMin)%(rangeMax + Float.MIN_VALUE))*-1;
+    	} else {    		    
+    		return (rand.nextFloat()*rangeMax + rangeMin)%(rangeMax + Float.MIN_VALUE);
+    	}
+    }
+    
+    public static Vector3f clamp( Vector3f input, float min, float max) {
+    	FastMath.clamp(input.x, min, max);
+    	FastMath.clamp(input.y, min, max);
+    	FastMath.clamp(input.z, min, max);
+    	
+    	return input;
+    }
+    
+    public static boolean nearEqual( float f1, float f2 ) {
+    	return Math.abs( f1 - f2 ) < .1f;
     }
     
     /**
@@ -159,7 +191,13 @@ public class Util {
      * @return true if the components of v1 and v2 are nearly equal
      */
  	public static boolean nearEqual( Vector3f v1, Vector3f v2) {
-		if (v1.x-v2.x<.1f && v1.y-v2.y<.1f && v1.z-v2.z<.1f) return true;
+ 		float precision = .1f;
+		if ( Math.abs(v1.x-v2.x)<precision && Math.abs(v1.y-v2.y)<precision && Math.abs(v1.z-v2.z)<precision ) return true;
+		return false;
+	}
+ 	
+	public static boolean nearEqual( Vector3f v1, Vector3f v2, float precision) {
+		if ( Math.abs(v1.x-v2.x)<precision && Math.abs(v1.y-v2.y)<precision && Math.abs(v1.z-v2.z)<precision ) return true;
 		return false;
 	}
  	

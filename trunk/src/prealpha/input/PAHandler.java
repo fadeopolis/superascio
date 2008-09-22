@@ -2,7 +2,7 @@ package prealpha.input;
 
 import jmetest.input.TestHardwareMouse;
 import prealpha.ascio.*;
-import prealpha.enums.GameType;
+import prealpha.curve.Curve;
 import prealpha.input.*;
 import prealpha.input.action.*;
 import prealpha.util.*;
@@ -21,10 +21,17 @@ import com.jme.util.TextureManager;
 import com.jmex.physics.*;
 
 public class PAHandler extends InputHandler {
+	
+	public enum GameType {
+		thirdPerson, sideScroller, isometric;
+	}
 	/**
 	 * The Ascio to be manipulated
 	 */
 	Ascio target;
+	
+	public Curve curve;
+	public float progress;
 	
 	/**
 	 * The CAMERA! 
@@ -47,9 +54,11 @@ public class PAHandler extends InputHandler {
 	Vector3f direction;
 	
 	Vector3f displace = new Vector3f();
-	
+		
 	float turnSpeed = 2f;
 	float moveSpeed = 25;
+	
+	int offset = 25;
 	
 	boolean foobar = true;
 	Vector3f oldPos = new Vector3f();
@@ -62,6 +71,8 @@ public class PAHandler extends InputHandler {
 		super();
 		this.target = target;
 		this.cam = cam;
+		
+		progress = 0;
 		
 		mouse = new AbsoluteMouse("Mouse Input", 800, 600);
 		mouse.registerWithInputHandler(this);
@@ -99,17 +110,20 @@ public class PAHandler extends InputHandler {
 			}
 	private void setupKeys( ) {
 				// TODO Auto-generated method stub
-				this.addAction(new ForwardAction(target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_W, InputHandler.AXIS_NONE, true);
-				this.addAction(new BackwardAction(target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_S, InputHandler.AXIS_NONE, true);
-				this.addAction(new StrafeLeftAction(target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_A, InputHandler.AXIS_NONE, true);
-				this.addAction(new StrafeRightAction(target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_D, InputHandler.AXIS_NONE, true);
-				this.addAction(new TurnLeftAction(target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_Q, InputHandler.AXIS_NONE, true);
-				this.addAction(new TurnRightAction(target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_E, InputHandler.AXIS_NONE, true);
-				this.addAction(new JumpAction(target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_SPACE, InputHandler.AXIS_NONE, false);
+				this.addAction(new ForwardAction(this,target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_W, InputHandler.AXIS_NONE, true);
+				this.addAction(new BackwardAction(this,target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_S, InputHandler.AXIS_NONE, true);
+		//		this.addAction(new StrafeLeftAction(this,target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_A, InputHandler.AXIS_NONE, true);
+		//		this.addAction(new StrafeRightAction(this,target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_D, InputHandler.AXIS_NONE, true);
+		//		this.addAction(new TurnLeftAction(this,target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_Q, InputHandler.AXIS_NONE, true);
+		//		this.addAction(new TurnRightAction(this,target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_E, InputHandler.AXIS_NONE, true);
+				this.addAction(new JumpAction(this,target), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_SPACE, InputHandler.AXIS_NONE, false);
 				this.addAction(new ExitAction(), InputHandler.DEVICE_KEYBOARD, KeyInput.KEY_ESCAPE, InputHandler.AXIS_NONE, false);
 				
 				KeyBindingManager.getKeyBindingManager().add("changeMode", KeyInput.KEY_F10);
 				KeyBindingManager.getKeyBindingManager().add("swing", KeyInput.KEY_LSHIFT);
+				
+				KeyBindingManager.getKeyBindingManager().add("zoomin", KeyInput.KEY_5);
+				KeyBindingManager.getKeyBindingManager().add("zoomout", KeyInput.KEY_6);
 			}
 
 	@Override
@@ -117,7 +131,33 @@ public class PAHandler extends InputHandler {
 		super.update(time);
 		
 		if ( foobar ) oldPos.set(target.getWorldTranslation());
+		/*
+		if ( progress > curve.getLength()-5 ) {
+    		//progress -= curve.getLength();
+  //  		System.out.print(curve.hashCode()+ "\t");
+			curve = curve.getSuccessor();
+    		progress -= 10.1f;
+  //  		else System.out.println("FUCK");
+  //  		System.out.println(curve.hashCode()+ "\t" + progress + "\t" + curve.getLength());
+    	} else if ( progress < 0 ) {
+   // 		System.out.print(curve.hashCode()+ "\t");
+    		if ( curve.getPredecessor() != null ) curve = curve.getPredecessor();
+   // 		else System.out.println("FUCK");
+   // 		System.out.println(curve.hashCode()+ "\t" + progress + "\t" + curve.getLength());
+   // 		progress -= curve.getLength();
+    	}
+    	
+    	float temp = curve.checkProgress(target.getLocalTranslation());
 		
+    	try {
+//			System.out.println(curve.hashCode()+ "\t" + curve.getSuccessor() + "\t" + progress + "\t" + temp + "\t" + curve.getLength());
+    	//	System.out.printlnsssssss(curve.getSuccessor());
+    	} catch ( Exception e) {
+
+		}
+		
+		progress = FastMath.clamp(progress , 0, temp);
+		*/
 		updateCamera(time);
 		updateKeys(time);
 		
@@ -144,7 +184,7 @@ public class PAHandler extends InputHandler {
 			
 			break;
 		case sideScroller :
-			vbuff = target.getPhysicsNode().getLocalRotation().getRotationColumn(0).mult(12);
+			vbuff = target.getPhysicsNode().getLocalRotation().getRotationColumn(0).mult(offset);
 			location = target.getPhysicsNode().getLocalTranslation().subtract(vbuff);
 
 			//left = target.getPhysicsNode().getLocalRotation().getRotationColumn(0);
@@ -193,23 +233,53 @@ public class PAHandler extends InputHandler {
 		if (KeyBindingManager.getKeyBindingManager().isValidCommand("swing", false)) {
 			target.attack();
 		}
+		if (KeyBindingManager.getKeyBindingManager().isValidCommand("zoomin", true)) {
+			if ( offset > 10 ) offset--;
+		}
+		if (KeyBindingManager.getKeyBindingManager().isValidCommand("zoomout", true)) {
+			offset++;
+		}
 	}
 	
 	/** prevents ascio from spinning or moving to fast */
 	private void limitForces() {
 		// limit movement speed
-		target.getPhysicsNode().getLinearVelocity(vbuff);
+		target.getLinearVelocity(vbuff);
 		vbuff.set(0, vbuff.x > moveSpeed ? moveSpeed : vbuff.x < -moveSpeed ? -moveSpeed : vbuff.x);
 		//vbuff.set(1, vbuff.y > moveSpeed ? moveSpeed : vbuff.y < -moveSpeed ? -moveSpeed : vbuff.y);
 		vbuff.set(2, vbuff.z > moveSpeed ? moveSpeed : vbuff.z < -moveSpeed ? -moveSpeed : vbuff.z);
-		target.getPhysicsNode().setLinearVelocity(vbuff);
+		target.setLinearVelocity(vbuff);
 		
 		// limit turning speed
-		target.getPhysicsNode().getAngularVelocity(vbuff);
+		target.getAngularVelocity(vbuff);
 		vbuff.set(0, vbuff.x > turnSpeed ? turnSpeed : vbuff.x < -turnSpeed ? -turnSpeed : vbuff.x);
 		vbuff.set(1, vbuff.y > turnSpeed ? turnSpeed : vbuff.y < -turnSpeed ? -turnSpeed : vbuff.y);
 		vbuff.set(2, vbuff.z > turnSpeed ? turnSpeed : vbuff.z < -turnSpeed ? -turnSpeed : vbuff.z);
-		target.getPhysicsNode().setAngularVelocity(vbuff);
+		target.setAngularVelocity(vbuff);
+	}
+
+    public Vector3f advance( float amount ) {
+    	progress += amount;
+    	/*if ( progress > curve.getLength() ) {
+    		progress -= curve.getLength();
+    		System.out.print(curve.hashCode()+ "\t");
+    		if ( curve.getSuccessor() != null ) curve = curve.getSuccessor();	
+    		System.out.println(curve.hashCode()+ "\t" + progress);
+    	} else if ( progress < 0 ) {
+    		System.out.print(curve.hashCode()+ "\t");
+    		if ( curve.getPredecessor() != null ) curve = curve.getPredecessor();
+    		System.out.println(curve.hashCode()+ "\t" + progress);
+    		progress -= curve.getLength();
+    	} */
+    	return curve.getPointByLength(progress);   	
+    }
+	
+	public Curve getCurve() {
+		return curve;
+	}
+
+	public void setCurve(Curve curve) {
+		this.curve = curve;
 	}
 
 	public void setGameType( GameType type ) {
