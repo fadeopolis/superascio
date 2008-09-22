@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Random;
 
-import prealpha.ascio.Ascio;
-
 import com.jme.math.FastMath;
 import com.jme.math.Vector3f;
 import com.jme.renderer.Camera;
@@ -24,94 +22,112 @@ import com.jmex.physics.PhysicsSpace;
 public class Util {
 	public static Random rand = new Random();
 	
-	public enum PropType { Ascio, Camera, DisplaySystem, Renderer, PhysicsSpace, RootNode};
+	public enum Prop {
+		Ascio {
+			@Override
+			public Object get() {
+				return prop;
+			}
+			
+			public void put(Object o) {
+				this.prop = o;
+			}
+		}
+		, Camera{
+			@Override
+			public Camera get() {
+				return (Camera) prop;
+			}
+			public void put(Camera c) {
+				this.prop = c;
+			}
+		}
+		, DisplaySystem{
+			@Override
+			public DisplaySystem get() {
+				return (DisplaySystem) prop;
+			}
+			public void put(DisplaySystem d) {
+				this.prop = d;
+			}
+		}
+		, Renderer{
+			@Override
+			public Renderer get() {
+				return (Renderer) prop;
+			}
+			public void put(Renderer r) {
+				this.prop = r;
+			}
+		}
+		, PhysicsSpace{
+			@Override
+			public PhysicsSpace get() {
+				return (PhysicsSpace) prop;
+			}
+			public void put(PhysicsSpace s) {
+				this.prop = s;
+			}
+		}
+		, RootNode{
+			@Override
+			public Node get() {
+				return (Node) prop;
+			}
+			public void put(Node n) {
+				this.prop = n;
+			}
+		}
+		;
+
+		
+		Object prop;
+		
+		public Object get() {
+			return prop;
+		}
+		
+		public void put( Object prop ) {
+			this.prop = prop;
+		}
+	};
 	
 	private static Util instance;
-
-	public static PhysicsSpace space = PhysicsSpace.create();
-	
-	private HashMap<PropType, Object> props;
 	
 	private Util() {
 		this(null);
 	}	
-	private Util(HashMap<PropType, Object> props) {
-		if (props == null ) {
-			this.props = new HashMap<PropType, Object>();
-		} else {
-			this.props = props;
+	
+	private Util(Object... props) {
+		if ( props != null ) {
+			for ( Object o : props ) {
+				putProp(o);
+			}
 		}
 	}
-
-	public static void create() {
-		create(null);
-	}
-	public static void create(HashMap<PropType, Object> props) {
-		instance = new Util(props);
-	}
 	
-	public static Util util() {
+	public static Util get() {
 		if (instance == null) {
 			instance = new Util();
 			return instance;
 		} else return instance;
 	}
 	
-	public static boolean check() {
-		boolean stat = true;
-		if (instance == null) {
-			System.out.println("No Instance of Util exists");
-			return false;
-		}
-		if (instance.props.get(PropType.Ascio) == null) {
-			System.out.println("No Ascio in props");
-			stat = false;
-		}
-		if (instance.props.get(PropType.Camera) == null) {
-			System.out.println("No Camera in props");
-			stat = false;
-		}
-		if (instance.props.get(PropType.DisplaySystem) == null) {
-			System.out.println("No DisplaySystem in props");
-			stat = false;
-		}
-		if (instance.props.get(PropType.PhysicsSpace) == null) {
-			System.out.println("No PhysicsSpace in props");
-			stat = false;
-		}
-		if (instance.props.get(PropType.Renderer) == null) {
-			System.out.println("No Renderer in props");
-			stat = false;
-		}
-		if (instance.props.get(PropType.RootNode) == null) {
-			System.out.println("No RootNode in props");
-			stat = false;
-		}
-		return stat;
-	}
-	
-	public Object getProp(PropType type) {
-		return props.get(type);
-	}
-	
-	public Object putProp(Object prop) {
-		PropType type; 
+	public void putProp(Object prop) {
+		/*
 		if ( prop instanceof Ascio ) {
 			type = PropType.Ascio;
-		} else if ( prop instanceof Camera ) {
-			type = PropType.Camera;
+		} else*/ if ( prop instanceof Camera ) {
+			Prop.Camera.put(prop);
 		} else if ( prop instanceof DisplaySystem ) {
-			type = PropType.DisplaySystem;
+			Prop.DisplaySystem.put(prop);
 		} else if ( prop instanceof Renderer ) {
-			type = PropType.Renderer;
+			Prop.DisplaySystem.put(prop);
 		} else if ( prop instanceof PhysicsSpace ) {
-			type = PropType.PhysicsSpace;
+			Prop.DisplaySystem.put(prop);
 		} else if ( prop instanceof Node ) {
-			type = PropType.RootNode;
-		} else {
-			return new String("FUCK YOU, INVALID PROP");
+			Prop.DisplaySystem.put(prop);
 		}
-		return props.put(type, prop);
 	}
 	
 	/**
