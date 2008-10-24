@@ -1,0 +1,15 @@
+Character
+	PC
+	NPC
+
+Weapon
+	Dummy
+	Gun
+	Sword
+	
+
+StandardGame
+	GameState
+		rootNode / scenegraph
+		physicsSpace
+			

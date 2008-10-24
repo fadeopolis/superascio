@@ -9,6 +9,7 @@ import prealpha.util.Util;
 import com.jme.bounding.BoundingSphere;
 import com.jme.bounding.BoundingVolume;
 import com.jme.math.Matrix3f;
+import com.jme.math.Plane;
 import com.jme.math.Quaternion;
 import com.jme.math.Vector3f;
 import com.jme.renderer.Renderer;
@@ -216,22 +217,46 @@ public abstract class Curve implements Savable {
 		return false;
 	}
     
+    Plane pl = new Plane();
+    
 	/**
 	 * returns the length traversed along the curve of a point
 	 * returns Float.NaN if there is no collision 
 	 * @param point
 	 * @return
 	 */
-	public float checkProgress( Vector3f point ) {
-		float foo = .001f ;
+	public float checkProgress( Vector3f point , float precision ) {
+		precision = 1f/precision;
 		float f;
 		
-		for ( f = 0; f < length; f += foo) {
-			if ( Util.nearEqual(point, this.getPointByLength(f), .25f)) return f;
+		for ( f = 0; f < length; f += precision ) {
+			Vector3f a = getPointByLength(f);
+			Vector3f b = getPointByLength(f+1);
+			
+			pl.setConstant(b.subtract(a).dot(a));
+			pl.setNormal(b.subtract(a));
+//			if ( Util.nearEqual(point, this.getPointByLength(f), .25f)) return f;
+			if ( pl.pseudoDistance(point) < .5f ) return f;
 		}
-		return Float.NaN;
+		return -1f;
 	}
-	
+
+	public float checkProgress( Vector3f point , float likelyPosition, float precision ) {
+		precision = 1f/precision;
+		float f;
+		
+		for ( f = likelyPosition-1; f < length; f += precision ) {
+			Vector3f a = getPointByLength(f);
+			Vector3f b = getPointByLength(f+1);
+			
+			pl.setConstant(b.subtract(a).dot(a));
+			pl.setNormal(b.subtract(a));
+//			if ( Util.nearEqual(point, this.getPointByLength(f), .25f)) return f;
+			if ( pl.pseudoDistance(point) < .5f ) return f;
+		}
+		return -1f;
+	}
+		
 	public String getName() {
 		// TODO Auto-generated method stub
 		return name;

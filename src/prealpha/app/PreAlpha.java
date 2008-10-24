@@ -12,6 +12,8 @@ import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import prealpha.core.Core;
+
 import com.jme.app.AbstractGame;
 import com.jme.image.Image;
 import com.jme.input.InputSystem;
@@ -32,6 +34,7 @@ import com.jme.util.Timer;
 import com.jmex.audio.AudioSystem;
 import com.jmex.awt.lwjgl.LWJGLAWTCanvasConstructor;
 import com.jmex.game.state.GameStateManager;
+import com.jmex.physics.PhysicsSpace;
 
 /**
  * <code>StandardGame</code> intends to be a basic implementation of a game that can be
@@ -263,6 +266,8 @@ public final class PreAlpha extends AbstractGame implements Runnable {
         } else {
             display = new DummyDisplaySystem();
         }
+        
+        Core.create(display, display.getRenderer(), PhysicsSpace.create());
     }
 
     /**
